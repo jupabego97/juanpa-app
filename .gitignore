@@ -37,12 +37,14 @@ logs/
 *.sqlite
 *.sqlite3
 
-# Node.js (Frontend)
+# Node.js (Frontend) - CRÍTICO PARA RAILWAY
 node_modules/
+frontend/node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+package-lock.json
 
 # React/Vite builds
 dist/

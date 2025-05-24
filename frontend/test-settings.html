@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JuanPA - Prueba de Configuraciones</title>
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --secondary-color: #6b7280;
+            --background-color: #ffffff;
+            --surface-color: #f9fafb;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #60a5fa;
+            --secondary-color: #9ca3af;
+            --background-color: #111827;
+            --surface-color: #1f2937;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --border-color: #374151;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            --success-color: #34d399;
+            --warning-color: #fbbf24;
+            --error-color: #f87171;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 20px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--surface-color);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .section {
+            background-color: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            flex: 1;
+        }
+
+        .setting-label .label {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .setting-label .description {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .setting-control {
+            margin-left: 16px;
+        }
+
+        input, select, button {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button.secondary {
+            background-color: var(--secondary-color);
+        }
+
+        button.danger {
+            background-color: var(--error-color);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            transition: 0.2s;
+            border-radius: 10px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: 0.2s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status.online {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #16a34a;
+        }
+
+        .status.offline {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #dc2626;
+        }
+
+        .debug-panel {
+            background: rgba(0, 0, 0, 0.9);
+            color: #00ff00;
+            font-family: monospace;
+            padding: 12px;
+            border-radius: 4px;
+            margin: 8px 0;
+            font-size: 11px;
+            border: 1px solid #333;
+            display: none;
+        }
+
+        .debug-panel.active {
+            display: block;
+        }
+
+        .compact-mode {
+            --spacing: 8px;
+        }
+
+        .compact-mode .section {
+            padding: var(--spacing);
+        }
+
+        .compact-mode .setting-item {
+            padding: var(--spacing) 0;
+        }
+
+        .no-animations * {
+            animation: none !important;
+            transition: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚙️ JuanPA - Prueba de Configuraciones</h1>
+        <p>Prueba todas las funcionalidades de configuraciones del sistema</p>
+
+        <!-- Estado de conexión -->
+        <div class="status" id="connectionStatus">
+            <span id="statusIcon">🟢</span>
+            <span id="statusText">Conectado</span>
+            <span id="lastSyncTime" style="margin-left: auto; font-size: 12px;"></span>
+        </div>
+
+        <!-- Panel de debug -->
+        <div class="debug-panel" id="debugPanel">
+            <div><strong>Debug Panel</strong></div>
+            <div id="debugInfo"></div>
+        </div>
+
+        <!-- Configuraciones de Estudio -->
+        <div class="section">
+            <h3>📚 Configuraciones de Estudio</h3>
+            
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="label">Tarjetas por sesión</div>
+                    <div class="description">Número predeterminado de tarjetas a revisar (1-100)</div>
+                </div>
+                <div class="setting-control">
+                    <input type="number" id="defaultCardsPerSession" min="1" max="100" value="20">
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="label">Habilitar audio</div>
+                    <div class="description">Permitir reproducción de archivos de audio</div>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="enableAudio" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="label">Reproducir audio automáticamente</div>
+                    <div class="description">Reproducir audio al mostrar una tarjeta</div>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoPlayAudio">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="label">Mostrar tiempo de respuesta</div>
+                    <div class="description">Mostrar cuánto tiempo tardaste en responder</div>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="showAnswerTime" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuraciones de Interfaz -->
+        <div class="section">
+            <h3>🎨 Configuraciones de Interfaz</h3>
+            
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="label">Tema</div>
+                    <div class="description">Apariencia visual de la aplicación</div>
+                </div>
+                <div class="setting-control">
+                    <select id="theme">
+                        <option value="light">Claro</option>
+                        <option value="dark">Oscuro</option>
+                        <option value="auto">Automático</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="label">Idioma</div>
+                    <div class="description">Idioma de la interfaz</div>
+                </div>
+                <div class="setting-control">
+                    <select id="language">
+                        <option value="es">Español</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="label">Modo compacto</div>
+                    <div class="description">Interfaz más densa con menos espaciado</div>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="compactMode">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="label">Habilitar animaciones</div>
+                    <div class="description">Transiciones y efectos visuales</div>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="enableAnimations" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuraciones de Notificaciones -->
+        <div class="section">
+            <h3>🔔 Configuraciones de Notificaciones</h3>
+            
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="label">Habilitar notificaciones</div>
+                    <div class="description">Permitir notificaciones del navegador</div>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="enableNotifications">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="label">Recordatorios de estudio</div>
+                    <div class="description">Recibir recordatorios diarios para estudiar</div>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="studyReminders">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="label">Hora de recordatorio</div>
+                    <div class="description">Hora para recibir recordatorios diarios</div>
+                </div>
+                <div class="setting-control">
+                    <input type="time" id="reminderTime" value="20:00">
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuraciones de Datos -->
+        <div class="section">
+            <h3>☁️ Configuraciones de Datos</h3>
+            
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="label">Sincronización automática</div>
+                    <div class="description">Sincronizar datos automáticamente cuando esté online</div>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoSync" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="label">Modo offline preferido</div>
+                    <div class="description">Priorizar funcionamiento offline sobre sincronización</div>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="offlineMode">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuraciones Avanzadas -->
+        <div class="section">
+            <h3>🔧 Configuraciones Avanzadas</h3>
+            
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="label">Retención deseada FSRS</div>
+                    <div class="description">Qué porcentaje de tarjetas quieres recordar (70-98%)</div>
+                </div>
+                <div class="setting-control">
+                    <input type="range" id="fsrsRetention" min="0.7" max="0.98" step="0.01" value="0.9">
+                    <span id="fsrsRetentionValue">90%</span>
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="label">Intervalo máximo (días)</div>
+                    <div class="description">Máximo tiempo entre revisiones</div>
+                </div>
+                <div class="setting-control">
+                    <input type="number" id="fsrsMaxInterval" min="30" max="36500" value="36500">
+                </div>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-label">
+                    <div class="label">Modo de depuración</div>
+                    <div class="description">Mostrar información técnica adicional</div>
+                </div>
+                <div class="setting-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="enableDebugMode">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="actions">
+            <button id="saveButton">💾 Guardar Configuraciones</button>
+            <button id="resetButton" class="secondary">🔄 Restablecer</button>
+            <button id="exportButton" class="secondary">📤 Exportar</button>
+            <button id="testNotificationButton" class="secondary">🔔 Probar Notificación</button>
+        </div>
+
+        <!-- Input para importar (oculto) -->
+        <input type="file" id="importInput" accept=".json" style="display: none;">
+    </div>
+
+    <script>
+        // Estado de la aplicación
+        let isOnline = navigator.onLine;
+        let lastSyncTime = null;
+        let currentSettings = {};
+
+        // Elementos del DOM
+        const elements = {
+            // Estado
+            connectionStatus: document.getElementById('connectionStatus'),
+            statusIcon: document.getElementById('statusIcon'),
+            statusText: document.getElementById('statusText'),
+            lastSyncTimeEl: document.getElementById('lastSyncTime'),
+            debugPanel: document.getElementById('debugPanel'),
+            debugInfo: document.getElementById('debugInfo'),
+
+            // Configuraciones de estudio
+            defaultCardsPerSession: document.getElementById('defaultCardsPerSession'),
+            enableAudio: document.getElementById('enableAudio'),
+            autoPlayAudio: document.getElementById('autoPlayAudio'),
+            showAnswerTime: document.getElementById('showAnswerTime'),
+
+            // Configuraciones de interfaz
+            theme: document.getElementById('theme'),
+            language: document.getElementById('language'),
+            compactMode: document.getElementById('compactMode'),
+            enableAnimations: document.getElementById('enableAnimations'),
+
+            // Configuraciones de notificaciones
+            enableNotifications: document.getElementById('enableNotifications'),
+            studyReminders: document.getElementById('studyReminders'),
+            reminderTime: document.getElementById('reminderTime'),
+
+            // Configuraciones de datos
+            autoSync: document.getElementById('autoSync'),
+            offlineMode: document.getElementById('offlineMode'),
+
+            // Configuraciones avanzadas
+            fsrsRetention: document.getElementById('fsrsRetention'),
+            fsrsRetentionValue: document.getElementById('fsrsRetentionValue'),
+            fsrsMaxInterval: document.getElementById('fsrsMaxInterval'),
+            enableDebugMode: document.getElementById('enableDebugMode'),
+
+            // Botones
+            saveButton: document.getElementById('saveButton'),
+            resetButton: document.getElementById('resetButton'),
+            exportButton: document.getElementById('exportButton'),
+            testNotificationButton: document.getElementById('testNotificationButton'),
+            importInput: document.getElementById('importInput')
+        };
+
+        // Detectar cambios en el estado de conexión
+        window.addEventListener('online', () => {
+            isOnline = true;
+            updateConnectionStatus();
+        });
+
+        window.addEventListener('offline', () => {
+            isOnline = false;
+            updateConnectionStatus();
+        });
+
+        // Actualizar estado de conexión
+        function updateConnectionStatus() {
+            elements.statusIcon.textContent = isOnline ? '🟢' : '🔴';
+            elements.statusText.textContent = isOnline ? 'Conectado' : 'Sin conexión';
+            elements.connectionStatus.className = `status ${isOnline ? 'online' : 'offline'}`;
+            
+            if (lastSyncTime) {
+                elements.lastSyncTimeEl.textContent = `Última sync: ${lastSyncTime.toLocaleTimeString()}`;
+            }
+        }
+
+        // Cargar configuraciones desde el servidor
+        async function loadSettings() {
+            if (!isOnline) {
+                loadFromLocalStorage();
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/v1/settings');
+                if (response.ok) {
+                    const settings = await response.json();
+                    currentSettings = settings;
+                    applySettingsToUI(settings);
+                    lastSyncTime = new Date();
+                    updateConnectionStatus();
+                    
+                    // Guardar en localStorage
+                    localStorage.setItem('juanpa_settings', JSON.stringify(settings));
+                }
+            } catch (error) {
+                console.error('Error loading settings:', error);
+                loadFromLocalStorage();
+            }
+        }
+
+        // Cargar desde localStorage
+        function loadFromLocalStorage() {
+            const stored = localStorage.getItem('juanpa_settings');
+            if (stored) {
+                currentSettings = JSON.parse(stored);
+                applySettingsToUI(currentSettings);
+            }
+        }
+
+        // Aplicar configuraciones a la UI
+        function applySettingsToUI(settings) {
+            elements.defaultCardsPerSession.value = settings.default_cards_per_session || 20;
+            elements.enableAudio.checked = settings.enable_audio !== false;
+            elements.autoPlayAudio.checked = settings.auto_play_audio || false;
+            elements.showAnswerTime.checked = settings.show_answer_time !== false;
+
+            elements.theme.value = settings.theme || 'light';
+            elements.language.value = settings.language || 'es';
+            elements.compactMode.checked = settings.compact_mode || false;
+            elements.enableAnimations.checked = settings.enable_animations !== false;
+
+            elements.enableNotifications.checked = settings.enable_notifications || false;
+            elements.studyReminders.checked = settings.study_reminders || false;
+            elements.reminderTime.value = settings.reminder_time || '20:00';
+
+            elements.autoSync.checked = settings.auto_sync !== false;
+            elements.offlineMode.checked = settings.offline_mode || false;
+
+            elements.fsrsRetention.value = settings.fsrs_request_retention || 0.9;
+            elements.fsrsRetentionValue.textContent = Math.round((settings.fsrs_request_retention || 0.9) * 100) + '%';
+            elements.fsrsMaxInterval.value = settings.fsrs_maximum_interval || 36500;
+            elements.enableDebugMode.checked = settings.enable_debug_mode || false;
+
+            // Aplicar configuraciones inmediatamente
+            applySettings();
+        }
+
+        // Obtener configuraciones desde la UI
+        function getSettingsFromUI() {
+            return {
+                default_cards_per_session: parseInt(elements.defaultCardsPerSession.value),
+                enable_audio: elements.enableAudio.checked,
+                auto_play_audio: elements.autoPlayAudio.checked,
+                show_answer_time: elements.showAnswerTime.checked,
+                theme: elements.theme.value,
+                language: elements.language.value,
+                compact_mode: elements.compactMode.checked,
+                enable_animations: elements.enableAnimations.checked,
+                enable_notifications: elements.enableNotifications.checked,
+                study_reminders: elements.studyReminders.checked,
+                reminder_time: elements.reminderTime.value,
+                auto_sync: elements.autoSync.checked,
+                offline_mode: elements.offlineMode.checked,
+                fsrs_request_retention: parseFloat(elements.fsrsRetention.value),
+                fsrs_maximum_interval: parseInt(elements.fsrsMaxInterval.value),
+                enable_debug_mode: elements.enableDebugMode.checked
+            };
+        }
+
+        // Aplicar configuraciones al sistema
+        function applySettings() {
+            const settings = getSettingsFromUI();
+
+            // Aplicar tema
+            if (settings.theme === 'auto') {
+                const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', settings.theme);
+            }
+
+            // Aplicar modo compacto
+            document.body.classList.toggle('compact-mode', settings.compact_mode);
+
+            // Aplicar animaciones
+            document.body.classList.toggle('no-animations', !settings.enable_animations);
+
+            // Aplicar modo debug
+            elements.debugPanel.classList.toggle('active', settings.enable_debug_mode);
+            if (settings.enable_debug_mode) {
+                updateDebugInfo();
+            }
+
+            // Actualizar valor de retención FSRS
+            elements.fsrsRetentionValue.textContent = Math.round(settings.fsrs_request_retention * 100) + '%';
+        }
+
+        // Actualizar información de debug
+        function updateDebugInfo() {
+            const settings = getSettingsFromUI();
+            elements.debugInfo.innerHTML = `
+                <div>Online: ${isOnline ? '✓' : '✗'}</div>
+                <div>Last Sync: ${lastSyncTime ? lastSyncTime.toLocaleString() : 'Never'}</div>
+                <div>Theme: ${settings.theme}</div>
+                <div>Compact: ${settings.compact_mode ? '✓' : '✗'}</div>
+                <div>Animations: ${settings.enable_animations ? '✓' : '✗'}</div>
+                <div>Cards/Session: ${settings.default_cards_per_session}</div>
+                <div>FSRS Retention: ${Math.round(settings.fsrs_request_retention * 100)}%</div>
+            `;
+        }
+
+        // Guardar configuraciones
+        async function saveSettings() {
+            const settings = getSettingsFromUI();
+            
+            // Guardar en localStorage siempre
+            localStorage.setItem('juanpa_settings', JSON.stringify(settings));
+            
+            if (!isOnline) {
+                alert('Configuraciones guardadas localmente. Se sincronizarán cuando haya conexión.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/v1/settings', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(settings),
+                });
+
+                if (response.ok) {
+                    lastSyncTime = new Date();
+                    updateConnectionStatus();
+                    alert('Configuraciones guardadas exitosamente');
+                } else {
+                    alert('Error al guardar configuraciones en el servidor');
+                }
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                alert('Error de conexión al guardar configuraciones');
+            }
+        }
+
+        // Restablecer configuraciones
+        async function resetSettings() {
+            if (!confirm('¿Estás seguro de que quieres restablecer todas las configuraciones?')) {
+                return;
+            }
+
+            if (isOnline) {
+                try {
+                    const response = await fetch('/api/v1/settings/reset', {
+                        method: 'POST',
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        applySettingsToUI(result.settings);
+                        alert('Configuraciones restablecidas exitosamente');
+                    }
+                } catch (error) {
+                    console.error('Error resetting settings:', error);
+                }
+            } else {
+                // Reset local
+                localStorage.removeItem('juanpa_settings');
+                location.reload();
+            }
+        }
+
+        // Exportar configuraciones
+        function exportSettings() {
+            const settings = getSettingsFromUI();
+            const exportData = {
+                ...settings,
+                exported_at: new Date().toISOString(),
+                app_version: '1.0.0'
+            };
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `juanpa-configuraciones-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Importar configuraciones
+        function importSettings(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    applySettingsToUI(imported);
+                    alert('Configuraciones importadas exitosamente');
+                } catch (error) {
+                    alert('Error al importar configuraciones: archivo inválido');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Probar notificación
+        async function testNotification() {
+            if (!('Notification' in window)) {
+                alert('Este navegador no soporta notificaciones');
+                return;
+            }
+
+            if (Notification.permission === 'granted') {
+                new Notification('🧠 JuanPA - Prueba de Notificación', {
+                    body: 'Las notificaciones están funcionando correctamente',
+                    icon: '/favicon.ico'
+                });
+            } else if (Notification.permission !== 'denied') {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    new Notification('🧠 JuanPA - Prueba de Notificación', {
+                        body: 'Permisos concedidos. Las notificaciones están funcionando.',
+                        icon: '/favicon.ico'
+                    });
+                }
+            } else {
+                alert('Permisos de notificación denegados');
+            }
+        }
+
+        // Event listeners
+        elements.saveButton.addEventListener('click', saveSettings);
+        elements.resetButton.addEventListener('click', resetSettings);
+        elements.exportButton.addEventListener('click', exportSettings);
+        elements.testNotificationButton.addEventListener('click', testNotification);
+
+        // Event listener para importar
+        elements.importInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                importSettings(e.target.files[0]);
+            }
+        });
+
+        // Botón de importar (crear dinámicamente)
+        const importButton = document.createElement('button');
+        importButton.textContent = '📥 Importar';
+        importButton.className = 'secondary';
+        importButton.addEventListener('click', () => elements.importInput.click());
+        elements.exportButton.parentNode.insertBefore(importButton, elements.testNotificationButton);
+
+        // Event listeners para aplicar configuraciones en tiempo real
+        Object.values(elements).forEach(element => {
+            if (element.tagName === 'INPUT' || element.tagName === 'SELECT') {
+                element.addEventListener('change', applySettings);
+                element.addEventListener('input', applySettings);
+            }
+        });
+
+        // Listener especial para el slider de retención FSRS
+        elements.fsrsRetention.addEventListener('input', () => {
+            elements.fsrsRetentionValue.textContent = Math.round(elements.fsrsRetention.value * 100) + '%';
+        });
+
+        // Actualizar debug info cada 5 segundos si está activo
+        setInterval(() => {
+            if (elements.enableDebugMode.checked) {
+                updateDebugInfo();
+            }
+        }, 5000);
+
+        // Inicializar
+        updateConnectionStatus();
+        loadSettings();
+
+        console.log('JuanPA Settings Test Page loaded successfully!');
+
+        // === FUNCIONALIDADES ADICIONALES DE PRUEBA ===
+
+        // Auto-sync cuando hay cambios y auto_sync está habilitado
+        let autoSyncTimeout;
+        function scheduleAutoSync() {
+            if (autoSyncTimeout) {
+                clearTimeout(autoSyncTimeout);
+            }
+            
+            const settings = getSettingsFromUI();
+            if (settings.auto_sync && isOnline) {
+                autoSyncTimeout = setTimeout(() => {
+                    console.log('Auto-sync triggered');
+                    saveSettings();
+                }, 2000); // 2 segundos después del último cambio
+            }
+        }
+
+        // Validación de configuraciones
+        function validateSettings(settings) {
+            const errors = [];
+            
+            if (settings.default_cards_per_session < 1 || settings.default_cards_per_session > 100) {
+                errors.push('Las tarjetas por sesión deben estar entre 1 y 100');
+            }
+            
+            if (settings.fsrs_request_retention < 0.7 || settings.fsrs_request_retention > 0.98) {
+                errors.push('La retención FSRS debe estar entre 70% y 98%');
+            }
+            
+            if (settings.fsrs_maximum_interval < 30 || settings.fsrs_maximum_interval > 36500) {
+                errors.push('El intervalo máximo debe estar entre 30 y 36500 días');
+            }
+            
+            if (!/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(settings.reminder_time)) {
+                errors.push('La hora de recordatorio debe tener formato HH:MM válido');
+            }
+            
+            return errors;
+        }
+
+        // Crear sección de tests adicionales
+        function createTestSection() {
+            const testSection = document.createElement('div');
+            testSection.className = 'section';
+            testSection.innerHTML = `
+                <h3>🧪 Funciones de Prueba</h3>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <div class="label">Probar todas las configuraciones</div>
+                        <div class="description">Ejecutar tests automáticos de validación</div>
+                    </div>
+                    <div class="setting-control">
+                        <button id="runAllTestsButton" class="secondary">▶️ Ejecutar Tests</button>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <div class="label">Simular pérdida de conexión</div>
+                        <div class="description">Probar funcionalidad offline</div>
+                    </div>
+                    <div class="setting-control">
+                        <button id="simulateOfflineButton" class="secondary">📴 Simular Offline</button>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <div class="label">Test de rendimiento</div>
+                        <div class="description">Medir tiempo de carga y guardado</div>
+                    </div>
+                    <div class="setting-control">
+                        <button id="performanceTestButton" class="secondary">⚡ Test Rendimiento</button>
+                    </div>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <div class="label">Limpiar datos locales</div>
+                        <div class="description">Borrar configuraciones de localStorage</div>
+                    </div>
+                    <div class="setting-control">
+                        <button id="clearLocalDataButton" class="danger">🗑️ Limpiar Datos</button>
+                    </div>
+                </div>
+                
+                <div id="testResults" style="margin-top: 16px; padding: 12px; border-radius: 6px; background: #f0f9ff; border: 1px solid #0ea5e9; display: none;">
+                    <div style="font-weight: bold; color: #0c4a6e;">Resultados de Pruebas:</div>
+                    <div id="testResultsContent"></div>
+                </div>
+            `;
+            
+            // Insertar antes de la sección de acciones
+            const actionsDiv = document.querySelector('.actions');
+            actionsDiv.parentNode.insertBefore(testSection, actionsDiv);
+            
+            // Añadir event listeners
+            document.getElementById('runAllTestsButton').addEventListener('click', runAllTests);
+            document.getElementById('simulateOfflineButton').addEventListener('click', simulateOffline);
+            document.getElementById('performanceTestButton').addEventListener('click', runPerformanceTest);
+            document.getElementById('clearLocalDataButton').addEventListener('click', clearLocalData);
+        }
+
+        // Ejecutar todos los tests
+        async function runAllTests() {
+            const results = [];
+            const testResults = document.getElementById('testResults');
+            const testResultsContent = document.getElementById('testResultsContent');
+            
+            testResults.style.display = 'block';
+            testResultsContent.innerHTML = '<div>🔄 Ejecutando tests...</div>';
+            
+            // Test 1: Validación de configuraciones
+            console.log('🧪 Test 1: Validación de configuraciones');
+            const settings = getSettingsFromUI();
+            const validationErrors = validateSettings(settings);
+            results.push({
+                name: 'Validación de Configuraciones',
+                status: validationErrors.length === 0 ? 'PASS' : 'FAIL',
+                details: validationErrors.length === 0 ? 'Todas las configuraciones son válidas' : validationErrors.join(', ')
+            });
+            
+            // Test 2: Persistencia localStorage
+            console.log('🧪 Test 2: Persistencia localStorage');
+            try {
+                const testData = { test: 'data', timestamp: Date.now() };
+                localStorage.setItem('juanpa_test', JSON.stringify(testData));
+                const retrieved = JSON.parse(localStorage.getItem('juanpa_test'));
+                localStorage.removeItem('juanpa_test');
+                
+                results.push({
+                    name: 'Persistencia localStorage',
+                    status: retrieved.test === 'data' ? 'PASS' : 'FAIL',
+                    details: retrieved.test === 'data' ? 'Datos guardados y recuperados correctamente' : 'Error en persistencia'
+                });
+            } catch (error) {
+                results.push({
+                    name: 'Persistencia localStorage',
+                    status: 'FAIL',
+                    details: `Error: ${error.message}`
+                });
+            }
+            
+            // Test 3: API de notificaciones
+            console.log('🧪 Test 3: API de notificaciones');
+            const notificationSupport = 'Notification' in window;
+            results.push({
+                name: 'Soporte de Notificaciones',
+                status: notificationSupport ? 'PASS' : 'FAIL',
+                details: notificationSupport ? 'API de notificaciones disponible' : 'Notificaciones no soportadas'
+            });
+            
+            // Test 4: Conectividad (si está online)
+            if (isOnline) {
+                console.log('🧪 Test 4: Conectividad del servidor');
+                try {
+                    const response = await fetch('/api/v1/status');
+                    results.push({
+                        name: 'Conectividad del Servidor',
+                        status: response.ok ? 'PASS' : 'FAIL',
+                        details: response.ok ? `Servidor respondió con status ${response.status}` : `Error HTTP ${response.status}`
+                    });
+                } catch (error) {
+                    results.push({
+                        name: 'Conectividad del Servidor',
+                        status: 'FAIL',
+                        details: `Error de conexión: ${error.message}`
+                    });
+                }
+            }
+            
+            // Test 5: Tema y CSS
+            console.log('🧪 Test 5: Sistema de temas');
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            results.push({
+                name: 'Sistema de Temas',
+                status: ['light', 'dark'].includes(currentTheme) ? 'PASS' : 'FAIL',
+                details: `Tema actual: ${currentTheme || 'none'}`
+            });
+            
+            // Mostrar resultados
+            const passCount = results.filter(r => r.status === 'PASS').length;
+            const failCount = results.filter(r => r.status === 'FAIL').length;
+            
+            testResultsContent.innerHTML = `
+                <div style="margin-bottom: 12px;">
+                    <strong>Resumen:</strong> ${passCount} exitosos, ${failCount} fallidos
+                </div>
+                ${results.map(result => `
+                    <div style="margin: 8px 0; padding: 8px; border-radius: 4px; background: ${result.status === 'PASS' ? '#d1fae5' : '#fee2e2'};">
+                        <span style="font-weight: bold; color: ${result.status === 'PASS' ? '#065f46' : '#991b1b'};">
+                            ${result.status === 'PASS' ? '✅' : '❌'} ${result.name}
+                        </span><br>
+                        <span style="font-size: 12px; color: #6b7280;">${result.details}</span>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        // Simular modo offline
+        function simulateOffline() {
+            const wasOnline = isOnline;
+            isOnline = false;
+            updateConnectionStatus();
+            
+            alert('Modo offline simulado. Las configuraciones se guardarán localmente.');
+            
+            // Restaurar después de 10 segundos
+            setTimeout(() => {
+                isOnline = wasOnline;
+                updateConnectionStatus();
+                alert('Conexión restaurada');
+            }, 10000);
+        }
+
+        // Test de rendimiento
+        async function runPerformanceTest() {
+            const testResults = document.getElementById('testResults');
+            const testResultsContent = document.getElementById('testResultsContent');
+            
+            testResults.style.display = 'block';
+            testResultsContent.innerHTML = '<div>⚡ Ejecutando test de rendimiento...</div>';
+            
+            const metrics = {};
+            
+            // Test de carga
+            const loadStart = performance.now();
+            loadSettings();
+            metrics.loadTime = performance.now() - loadStart;
+            
+            // Test de aplicación de configuraciones
+            const applyStart = performance.now();
+            applySettings();
+            metrics.applyTime = performance.now() - applyStart;
+            
+            // Test de validación
+            const validateStart = performance.now();
+            const settings = getSettingsFromUI();
+            validateSettings(settings);
+            metrics.validateTime = performance.now() - validateStart;
+            
+            // Test de guardado local
+            const saveLocalStart = performance.now();
+            localStorage.setItem('juanpa_test_perf', JSON.stringify(settings));
+            localStorage.removeItem('juanpa_test_perf');
+            metrics.saveLocalTime = performance.now() - saveLocalStart;
+            
+            testResultsContent.innerHTML = `
+                <div style="margin-bottom: 12px;"><strong>Métricas de Rendimiento:</strong></div>
+                <div style="font-family: monospace; font-size: 12px;">
+                    <div>🔄 Carga de configuraciones: ${metrics.loadTime.toFixed(2)}ms</div>
+                    <div>🎨 Aplicación de configuraciones: ${metrics.applyTime.toFixed(2)}ms</div>
+                    <div>✅ Validación: ${metrics.validateTime.toFixed(2)}ms</div>
+                    <div>💾 Guardado local: ${metrics.saveLocalTime.toFixed(2)}ms</div>
+                    <div style="margin-top: 8px; font-weight: bold;">
+                        Total: ${(metrics.loadTime + metrics.applyTime + metrics.validateTime + metrics.saveLocalTime).toFixed(2)}ms
+                    </div>
+                </div>
+            `;
+        }
+
+        // Limpiar datos locales
+        function clearLocalData() {
+            if (!confirm('¿Estás seguro de que quieres borrar todos los datos locales?')) {
+                return;
+            }
+            
+            try {
+                localStorage.removeItem('juanpa_settings');
+                localStorage.removeItem('juanpa_last_sync');
+                
+                // Limpiar otras claves relacionadas
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('juanpa_')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+                
+                alert('Datos locales limpiados. La página se recargará.');
+                location.reload();
+            } catch (error) {
+                alert(`Error al limpiar datos: ${error.message}`);
+            }
+        }
+
+        // Mejorar el guardado con mejor feedback
+        const originalSaveSettings = saveSettings;
+        saveSettings = async function() {
+            const saveButton = elements.saveButton;
+            const originalText = saveButton.textContent;
+            
+            // Validar antes de guardar
+            const settings = getSettingsFromUI();
+            const validationErrors = validateSettings(settings);
+            
+            if (validationErrors.length > 0) {
+                alert('Errores de validación:\n' + validationErrors.join('\n'));
+                return;
+            }
+            
+            saveButton.textContent = '💾 Guardando...';
+            saveButton.disabled = true;
+            
+            try {
+                await originalSaveSettings();
+                saveButton.textContent = '✅ Guardado';
+                setTimeout(() => {
+                    saveButton.textContent = originalText;
+                }, 2000);
+            } catch (error) {
+                saveButton.textContent = '❌ Error';
+                setTimeout(() => {
+                    saveButton.textContent = originalText;
+                }, 2000);
+            } finally {
+                saveButton.disabled = false;
+            }
+        };
+
+        // Auto-sync mejorado
+        Object.values(elements).forEach(element => {
+            if ((element.tagName === 'INPUT' || element.tagName === 'SELECT') && 
+                element.id !== 'importInput') {
+                element.addEventListener('change', () => {
+                    applySettings();
+                    scheduleAutoSync();
+                });
+                element.addEventListener('input', () => {
+                    applySettings();
+                    if (element.type !== 'range') { // No auto-sync en sliders que cambian rápido
+                        scheduleAutoSync();
+                    }
+                });
+            }
+        });
+
+        // Indicador de cambios no guardados
+        let hasUnsavedChanges = false;
+        Object.values(elements).forEach(element => {
+            if ((element.tagName === 'INPUT' || element.tagName === 'SELECT') && 
+                element.id !== 'importInput') {
+                element.addEventListener('change', () => {
+                    hasUnsavedChanges = true;
+                    updateSaveButtonState();
+                });
+            }
+        });
+
+        function updateSaveButtonState() {
+            if (hasUnsavedChanges) {
+                elements.saveButton.style.background = 'var(--warning-color)';
+                elements.saveButton.textContent = '💾 Guardar Cambios';
+            } else {
+                elements.saveButton.style.background = 'var(--primary-color)';
+                elements.saveButton.textContent = '💾 Guardar Configuraciones';
+            }
+        }
+
+        // Marcar como guardado después de guardar exitosamente
+        const originalSaveSuccessful = () => {
+            hasUnsavedChanges = false;
+            updateSaveButtonState();
+        };
+
+        // Advertencia de navegación con cambios no guardados
+        window.addEventListener('beforeunload', (e) => {
+            if (hasUnsavedChanges) {
+                const message = 'Tienes cambios sin guardar. ¿Estás seguro de que quieres salir?';
+                e.preventDefault();
+                e.returnValue = message;
+                return message;
+            }
+        });
+
+        // Crear la sección de tests
+        createTestSection();
+
+        // Mensaje de éxito en consola
+        console.log('✅ JuanPA Settings Test Page completamente cargada e inicializada');
+        console.log('📋 Funcionalidades disponibles:', {
+            'Configuraciones': 'Todas las configuraciones del sistema',
+            'Persistencia': 'localStorage + sincronización servidor',
+            'Tests': 'Validación automática y tests de rendimiento',
+            'Offline': 'Funcionalidad completa sin conexión',
+            'Exportar/Importar': 'Respaldo y restauración de configuraciones',
+            'Debug': 'Panel de información técnica'
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JuanPA - Generación de Tarjetas con Gemini</title>
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --secondary-color: #6b7280;
+            --background-color: #ffffff;
+            --surface-color: #f9fafb;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: var(--surface-color);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        h1, h2 {
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        .status-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-card.available {
+            border-color: var(--success-color);
+            background-color: #f0fdf4;
+        }
+
+        .status-card.unavailable {
+            border-color: var(--error-color);
+            background-color: #fef2f2;
+        }
+
+        .form-section {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .form-group .description {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+        }
+
+        .button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .button:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+
+        .button:disabled {
+            background-color: var(--secondary-color);
+            cursor: not-allowed;
+        }
+
+        .button.secondary {
+            background-color: var(--secondary-color);
+        }
+
+        .progress-container {
+            display: none;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 12px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .results-container {
+            display: none;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .card-preview {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            margin: 8px 0;
+            background: var(--surface-color);
+        }
+
+        .card-preview .front {
+            font-weight: 500;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-preview .back {
+            color: var(--text-secondary);
+        }
+
+        .card-preview .tags {
+            margin-top: 8px;
+            font-size: 12px;
+        }
+
+        .tag {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-right: 4px;
+            font-size: 11px;
+        }
+
+        .error-list {
+            background-color: #fef2f2;
+            border: 1px solid var(--error-color);
+            border-radius: 6px;
+            padding: 12px;
+            margin: 12px 0;
+        }
+
+        .error-list ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .warning-list {
+            background-color: #fffbeb;
+            border: 1px solid var(--warning-color);
+            border-radius: 6px;
+            padding: 12px;
+            margin: 12px 0;
+        }
+
+        .warning-list ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .deck-selector {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .deck-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 4px 0;
+        }
+
+        .deck-item:hover {
+            background-color: var(--surface-color);
+        }
+
+        .deck-item.selected {
+            border-color: var(--primary-color);
+            background-color: #eff6ff;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .metadata {
+            background-color: var(--surface-color);
+            border-radius: 6px;
+            padding: 12px;
+            margin: 12px 0;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 JuanPA - Generación de Tarjetas con Gemini</h1>
+        <p>Genera tarjetas de estudio automáticamente usando Gemini 2.5-pro</p>
+
+        <!-- Estado del servicio -->
+        <div class="status-card" id="statusCard">
+            <div class="spinner" id="statusSpinner"></div>
+            <div>
+                <strong id="statusTitle">Verificando estado de Gemini...</strong>
+                <div id="statusDetails" style="font-size: 12px; color: var(--text-secondary);"></div>
+            </div>
+        </div>
+
+        <!-- Selector de mazo -->
+        <div class="deck-selector">
+            <h3>📚 Seleccionar Mazo</h3>
+            <div id="deckList">
+                <div class="spinner"></div> Cargando mazos...
+            </div>
+        </div>
+
+        <!-- Formulario de generación -->
+        <div class="form-section">
+            <h3>⚙️ Configuración de Generación</h3>
+            
+            <div class="form-group">
+                <label for="topic">Tema de estudio</label>
+                <div class="description">Describe el tema sobre el cual quieres generar tarjetas</div>
+                <input type="text" id="topic" placeholder="Ej: Fotosíntesis en plantas, Historia de Roma, Programación en Python...">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="numCards">Número de tarjetas</label>
+                    <div class="description">Cantidad de tarjetas a generar (1-50)</div>
+                    <input type="number" id="numCards" min="1" max="50" value="10">
+                </div>
+
+                <div class="form-group">
+                    <label for="difficulty">Dificultad</label>
+                    <div class="description">Nivel de complejidad de las tarjetas</div>
+                    <select id="difficulty">
+                        <option value="easy">Fácil - Conceptos básicos</option>
+                        <option value="medium" selected>Medio - Aplicaciones prácticas</option>
+                        <option value="hard">Difícil - Análisis avanzado</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="cardType">Tipo de tarjetas</label>
+                    <div class="description">Formato de las tarjetas generadas</div>
+                    <select id="cardType">
+                        <option value="standard" selected>Estándar - Pregunta/Respuesta</option>
+                        <option value="cloze">Cloze - Texto con huecos</option>
+                        <option value="mixed">Mixto - Combinación de ambos</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="language">Idioma</label>
+                    <div class="description">Idioma de las tarjetas</div>
+                    <select id="language">
+                        <option value="es" selected>Español</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="context">Contexto adicional (opcional)</label>
+                <div class="description">Información adicional o material de referencia para mejorar la generación</div>
+                <textarea id="context" placeholder="Ej: Las tarjetas deben enfocarse en el nivel universitario, incluir ejemplos prácticos, ser adecuadas para un curso de biología..."></textarea>
+            </div>
+
+            <button class="button" id="generateButton" onclick="generateCards()">
+                🚀 Generar Tarjetas
+            </button>
+        </div>
+
+        <!-- Progreso -->
+        <div class="progress-container" id="progressContainer">
+            <h3>⏳ Generando tarjetas...</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div id="progressMessage">Iniciando generación...</div>
+        </div>
+
+        <!-- Resultados -->
+        <div class="results-container" id="resultsContainer">
+            <h3>✅ Tarjetas Generadas</h3>
+            <div id="resultsSummary"></div>
+            <div id="resultsCards"></div>
+            <div id="resultsMetadata"></div>
+        </div>
+    </div>
+
+    <script>
+        let selectedDeckId = null;
+        let geminiStatus = { available: false };
+
+        // Verificar estado de Gemini al cargar
+        async function checkGeminiStatus() {
+            try {
+                const response = await fetch('/api/v1/gemini/status');
+                geminiStatus = await response.json();
+                
+                const statusCard = document.getElementById('statusCard');
+                const statusSpinner = document.getElementById('statusSpinner');
+                const statusTitle = document.getElementById('statusTitle');
+                const statusDetails = document.getElementById('statusDetails');
+                
+                statusSpinner.style.display = 'none';
+                
+                if (geminiStatus.available) {
+                    statusCard.className = 'status-card available';
+                    statusTitle.textContent = '✅ Gemini disponible';
+                    statusDetails.textContent = `Modelo: ${geminiStatus.model}`;
+                } else {
+                    statusCard.className = 'status-card unavailable';
+                    statusTitle.textContent = '❌ Gemini no disponible';
+                    statusDetails.textContent = geminiStatus.last_error || 'Servicio no configurado';
+                    
+                    // Deshabilitar el botón de generación
+                    document.getElementById('generateButton').disabled = true;
+                }
+            } catch (error) {
+                console.error('Error verificando estado de Gemini:', error);
+                const statusCard = document.getElementById('statusCard');
+                statusCard.className = 'status-card unavailable';
+                document.getElementById('statusSpinner').style.display = 'none';
+                document.getElementById('statusTitle').textContent = '❌ Error de conexión';
+                document.getElementById('statusDetails').textContent = 'No se pudo conectar al servidor';
+            }
+        }
+
+        // Cargar mazos disponibles
+        async function loadDecks() {
+            try {
+                const response = await fetch('/api/v1/decks/');
+                const decks = await response.json();
+                
+                const deckList = document.getElementById('deckList');
+                
+                if (decks.length === 0) {
+                    deckList.innerHTML = '<p>No hay mazos disponibles. <a href="/decks/new">Crear un mazo</a></p>';
+                    return;
+                }
+                
+                deckList.innerHTML = decks.map(deck => `
+                    <div class="deck-item" onclick="selectDeck(${deck.id})" data-deck-id="${deck.id}">
+                        <div>
+                            <strong>${deck.name}</strong>
+                            <div style="font-size: 12px; color: var(--text-secondary);">
+                                ${deck.description || 'Sin descripción'}
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">
+                            ID: ${deck.id}
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Seleccionar el primer mazo por defecto
+                if (decks.length > 0) {
+                    selectDeck(decks[0].id);
+                }
+            } catch (error) {
+                console.error('Error cargando mazos:', error);
+                document.getElementById('deckList').innerHTML = '<p style="color: var(--error-color);">Error cargando mazos</p>';
+            }
+        }
+
+        // Seleccionar un mazo
+        function selectDeck(deckId) {
+            selectedDeckId = deckId;
+            
+            // Actualizar UI
+            document.querySelectorAll('.deck-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            const selectedItem = document.querySelector(`[data-deck-id="${deckId}"]`);
+            if (selectedItem) {
+                selectedItem.classList.add('selected');
+            }
+            
+            // Habilitar/deshabilitar botón de generación
+            updateGenerateButton();
+        }
+
+        // Actualizar estado del botón de generación
+        function updateGenerateButton() {
+            const button = document.getElementById('generateButton');
+            const topic = document.getElementById('topic').value.trim();
+            
+            button.disabled = !geminiStatus.available || !selectedDeckId || !topic;
+        }
+
+        // Generar tarjetas
+        async function generateCards() {
+            if (!selectedDeckId) {
+                alert('Por favor selecciona un mazo');
+                return;
+            }
+            
+            const topic = document.getElementById('topic').value.trim();
+            if (!topic) {
+                alert('Por favor ingresa un tema');
+                return;
+            }
+            
+            const request = {
+                topic: topic,
+                num_cards: parseInt(document.getElementById('numCards').value),
+                difficulty: document.getElementById('difficulty').value,
+                card_type: document.getElementById('cardType').value,
+                language: document.getElementById('language').value,
+                context: document.getElementById('context').value.trim() || null,
+                deck_id: selectedDeckId
+            };
+            
+            // Mostrar progreso
+            document.getElementById('progressContainer').style.display = 'block';
+            document.getElementById('resultsContainer').style.display = 'none';
+            document.getElementById('generateButton').disabled = true;
+            
+            // Simular progreso
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 90) progress = 90;
+                
+                document.getElementById('progressFill').style.width = progress + '%';
+                
+                if (progress < 30) {
+                    document.getElementById('progressMessage').textContent = 'Enviando solicitud a Gemini...';
+                } else if (progress < 60) {
+                    document.getElementById('progressMessage').textContent = 'Gemini está generando las tarjetas...';
+                } else if (progress < 90) {
+                    document.getElementById('progressMessage').textContent = 'Procesando y guardando tarjetas...';
+                }
+            }, 200);
+            
+            try {
+                const response = await fetch('/api/v1/gemini/generate-cards', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(request)
+                });
+                
+                clearInterval(progressInterval);
+                document.getElementById('progressFill').style.width = '100%';
+                document.getElementById('progressMessage').textContent = 'Completado!';
+                
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                // Ocultar progreso y mostrar resultados
+                setTimeout(() => {
+                    document.getElementById('progressContainer').style.display = 'none';
+                    showResults(result);
+                }, 1000);
+                
+            } catch (error) {
+                clearInterval(progressInterval);
+                document.getElementById('progressContainer').style.display = 'none';
+                console.error('Error generando tarjetas:', error);
+                alert(`Error generando tarjetas: ${error.message}`);
+            } finally {
+                document.getElementById('generateButton').disabled = false;
+            }
+        }
+
+        // Mostrar resultados
+        function showResults(result) {
+            const container = document.getElementById('resultsContainer');
+            const summary = document.getElementById('resultsSummary');
+            const cards = document.getElementById('resultsCards');
+            const metadata = document.getElementById('resultsMetadata');
+            
+            // Resumen
+            summary.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div>
+                        <strong>${result.cards_created.length} tarjetas creadas exitosamente</strong>
+                        ${result.success ? '✅' : '⚠️'}
+                    </div>
+                    <button class="button secondary" onclick="location.reload()">🔄 Generar Nuevas</button>
+                </div>
+            `;
+            
+            // Errores y advertencias
+            if (result.errors && result.errors.length > 0) {
+                summary.innerHTML += `
+                    <div class="error-list">
+                        <strong>❌ Errores:</strong>
+                        <ul>
+                            ${result.errors.map(error => `<li>${error}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            if (result.warnings && result.warnings.length > 0) {
+                summary.innerHTML += `
+                    <div class="warning-list">
+                        <strong>⚠️ Advertencias:</strong>
+                        <ul>
+                            ${result.warnings.map(warning => `<li>${warning}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            // Tarjetas
+            cards.innerHTML = `
+                <h4>📋 Tarjetas generadas:</h4>
+                ${result.cards_created.map((card, index) => `
+                    <div class="card-preview">
+                        <div class="front">
+                            <strong>Pregunta ${index + 1}:</strong><br>
+                            ${formatCardContent(card.front_content)}
+                        </div>
+                        <div class="back">
+                            <strong>Respuesta:</strong><br>
+                            ${formatCardContent(card.back_content)}
+                        </div>
+                        ${card.tags && card.tags.length > 0 ? `
+                            <div class="tags">
+                                <strong>Etiquetas:</strong>
+                                ${card.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('')}
+            `;
+            
+            // Metadata
+            metadata.innerHTML = `
+                <div class="metadata">
+                    <strong>📊 Información de generación:</strong><br>
+                    <strong>Tema:</strong> ${result.metadata.topic}<br>
+                    <strong>Dificultad:</strong> ${result.metadata.difficulty}<br>
+                    <strong>Tipo:</strong> ${result.metadata.card_type}<br>
+                    <strong>Idioma:</strong> ${result.metadata.language}<br>
+                    <strong>Modelo usado:</strong> ${result.metadata.model_used}<br>
+                    <strong>Tiempo de generación:</strong> ${result.metadata.generation_time_seconds?.toFixed(2)}s<br>
+                    <strong>Mazo:</strong> ${result.metadata.deck_name} (ID: ${result.metadata.deck_id})
+                </div>
+            `;
+            
+            container.style.display = 'block';
+        }
+
+        // Formatear contenido de tarjeta
+        function formatCardContent(content) {
+            if (!content) return '';
+            
+            if (Array.isArray(content)) {
+                return content.map(block => {
+                    if (block.type === 'text') {
+                        return block.content;
+                    } else if (block.type === 'html') {
+                        return block.content;
+                    }
+                    return JSON.stringify(block);
+                }).join('<br>');
+            }
+            
+            return String(content);
+        }
+
+        // Event listeners
+        document.getElementById('topic').addEventListener('input', updateGenerateButton);
+
+        // Inicializar
+        checkGeminiStatus();
+        loadDecks();
+        
+        console.log('🧠 JuanPA Gemini Card Generator cargado exitosamente!');
+    </script>
+</body>
+</html> 

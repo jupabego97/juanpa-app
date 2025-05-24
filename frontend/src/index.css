@@ -1,0 +1,1086 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+
+/* Reset/Normalize básico */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Paleta de Colores (Inspiración Anki con toque Duolingo) */
+  --color-background: #f7f7f7; 
+  --color-surface: #ffffff;   
+  --color-text-primary: #333333; 
+  --color-text-secondary: #555555; /* Un poco más oscuro para mejor contraste */
+  --anki-blue: #007aff; /* Azul típico de Anki, similar a iOS */
+  --duolingo-green: #58cc02; /* Verde brillante de Duolingo */
+  --color-primary: var(--anki-blue);      
+  --color-primary-hover: #005bb5; /* Azul más oscuro para hover */
+  --color-secondary: #6c757d;    
+  --color-success: var(--duolingo-green); 
+  --color-danger: #dc3545;       
+  --color-warning: #ffc107;      
+  --color-border: #e0e0e0; /* Borde un poco más suave */
+
+  /* Tipografía */
+  --font-family-sans-serif: 'Nunito', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-size-base: 16px;
+  --line-height-base: 1.6;
+
+  /* Estilo Duolingo */
+  --border-radius-soft: 8px;
+  --border-radius-rounder: 12px;
+  --box-shadow-soft: 0 2px 4px rgba(0, 0, 0, 0.06);
+  --box-shadow-lifted: 0 4px 8px rgba(0, 0, 0, 0.08);
+
+  /* Tema claro (por defecto) */
+  --primary-color: #3b82f6;
+  --secondary-color: #6b7280;
+  --background-color: #ffffff;
+  --surface-color: #f9fafb;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
+}
+
+[data-theme="dark"] {
+  /* Tema oscuro */
+  --primary-color: #60a5fa;
+  --secondary-color: #9ca3af;
+  --background-color: #111827;
+  --surface-color: #1f2937;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --border-color: #374151;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --success-color: #34d399;
+  --warning-color: #fbbf24;
+  --error-color: #f87171;
+}
+
+body {
+  font-family: var(--font-family-sans-serif);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  color: var(--color-text-primary);
+  background-color: var(--background-color);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  font-weight: 700; /* Un poco más de peso para los títulos */
+  line-height: 1.3;
+}
+
+h1 { font-size: 2.25rem; }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.25rem; }
+
+p {
+  margin-bottom: 1rem;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
+}
+
+button,
+input[type="submit"] {
+  display: inline-block;
+  font-weight: 700; /* Más peso como Duolingo */
+  color: #fff;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  background-color: var(--color-primary);
+  border: none; /* Duolingo a menudo no usa bordes en botones principales */
+  padding: 0.75rem 1.25rem; /* Más padding */
+  font-size: 1rem;
+  border-radius: var(--border-radius-rounder); /* Bordes más redondeados */
+  box-shadow: var(--box-shadow-soft);
+  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out; /* Transición para efecto de click */
+}
+
+button:hover,
+input[type="submit"]:hover {
+  box-shadow: var(--box-shadow-lifted);
+  transform: translateY(-1px); /* Efecto sutil de elevación */
+}
+
+button:active,
+input[type="submit"]:active {
+  transform: translateY(0px);
+  box-shadow: var(--box-shadow-soft);
+}
+
+button:disabled,
+input[type="submit"]:disabled {
+  background-color: var(--color-secondary);
+  border-color: var(--color-secondary);
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+textarea {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  background-color: var(--background-color);
+  background-clip: padding-box;
+  border-radius: var(--border-radius-soft);
+  border: 1px solid var(--border-color);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus,
+input[type="number"]:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+textarea {
+  resize: vertical;
+}
+
+/* Contenedor principal de la aplicación (puedes añadirlo en App.tsx) */
+/* .app-container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px;
+} */
+
+/* Estilos para react-calendar-heatmap */
+.react-calendar-heatmap .color-empty {
+  fill: #ebedf0; /* Color para días sin datos o con 0 repasos */
+}
+.react-calendar-heatmap .color-scale-1 { 
+  fill: #c6e48b; /* Actividad baja */
+}
+.react-calendar-heatmap .color-scale-2 { 
+  fill: #7bc96f; /* Actividad media-baja */
+}
+.react-calendar-heatmap .color-scale-3 { 
+  fill: #239a3b; /* Actividad media-alta */
+}
+.react-calendar-heatmap .color-scale-4 { 
+  fill: #196127; /* Actividad alta */
+}
+
+/* Estilos para DeckItem */
+.deck-item {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: 20px;
+  margin-bottom: 15px;
+  border-radius: var(--border-radius-rounder);
+  box-shadow: var(--box-shadow-soft);
+}
+
+.deck-item:hover {
+  box-shadow: var(--box-shadow-lifted);
+  transform: translateY(-2px);
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.deck-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.deck-header h3 {
+  margin: 0; /* Eliminar márgenes por defecto del h3 dentro del header */
+  color: var(--color-text-primary); /* Asegurar color de texto primario */
+  font-weight: 700; /* Asegurar peso de fuente */
+  font-size: 1.25rem; /* Un tamaño adecuado para el título del mazo */
+}
+
+.deck-dates {
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  display: block; /* Asegurar que ocupe su propia línea */
+  margin-bottom: 10px;
+}
+
+.deck-actions {
+  margin-top: 15px;
+  display: flex; /* Para usar gap si hay múltiples botones */
+  gap: 10px; /* Espacio entre botones de acción del mazo */
+}
+
+/* Estilos para botones específicos */
+.button-danger {
+  background-color: var(--color-danger);
+  border-color: var(--color-danger);
+  color: white;
+  padding: 5px 10px; /* Más pequeño que el botón general */
+  font-size: 0.9rem;
+  font-weight: normal;
+}
+
+.button-danger:hover {
+  background-color: #c82333; /* Tono más oscuro de rojo */
+  border-color: #bd2130;
+}
+
+/* Estilos para enlaces que parecen botones */
+.button-link {
+  display: inline-block;
+  font-weight: 600;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 0.25rem;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  text-decoration: none; /* Asegurar que no tengan subrayado por defecto */
+}
+
+.button-link:hover {
+  text-decoration: none; /* No subrayar al pasar el mouse si ya parece botón */
+}
+
+.button-link.button-secondary-link {
+  background-color: var(--color-secondary);
+  border-color: var(--color-secondary);
+  color: white;
+}
+
+.button-link.button-secondary-link:hover {
+  background-color: #545b62; /* Tono más oscuro de gris */
+  border-color: #4c5258;
+}
+
+/* Estilos para la lista de mazos en DeckListPage */
+.deck-list-container {
+  margin-top: 20px;
+}
+
+/* Estilos para la página de repaso (ReviewPage) */
+.review-page-container {
+  /* page-container ya aplica max-width y centrado */
+  /* Podemos añadir un poco más de padding específico si es necesario */
+}
+
+.review-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: 25px; /* Más padding interno */
+  margin-top: 25px; 
+  margin-bottom: 25px;
+  border-radius: var(--border-radius-rounder); /* Bordes más redondeados */
+  box-shadow: var(--box-shadow-lifted); /* Sombra más pronunciada */
+  text-align: center; /* Centrar el contenido de la tarjeta */
+}
+
+.review-card-section {
+  margin-bottom: 20px;
+  text-align: left; /* Dejar el texto de la pregunta/respuesta alineado a la izquierda */
+}
+
+.review-card-section h3 {
+  margin-top: 0;
+  margin-bottom: 10px; /* Más espacio después del título "Anverso/Reverso" */
+  font-size: 1rem; /* Un poco más pequeño y sutil */
+  color: var(--color-text-secondary);
+  text-transform: uppercase; /* Hacerlo mayúscula para diferenciarlo del contenido */
+  letter-spacing: 0.5px;
+}
+
+.review-card-answer {
+  border-top: 1px solid var(--color-border);
+  padding-top: 25px; /* Más padding para la respuesta */
+  margin-top: 25px; /* Más margen para la respuesta */
+}
+
+.review-actions {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.button-show-answer {
+  padding: 15px 35px; /* Botón grande */
+  font-size: 1.2rem;
+  font-weight: 700;
+  background-color: var(--anki-blue); /* Azul Anki para este botón */
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-rounder);
+  box-shadow: 0 4px 0 #005bb5; /* Sombra 3D (azul más oscuro) */
+  transition: background-color 0.15s ease, transform 0.1s ease-out, box-shadow 0.1s ease-out;
+}
+
+.button-show-answer:hover {
+  background-color: #006fe6; /* Azul un poco más claro/brillante */
+}
+
+.button-show-answer:active {
+  box-shadow: 0 2px 0 #005bb5;
+  transform: translateY(2px);
+}
+
+.rating-buttons {
+  margin-top: 20px; /* Espacio si se muestra después de la respuesta */
+}
+
+.rating-buttons p {
+  margin-bottom: 15px; /* Más espacio para la pregunta "¿Qué tal te fue?" */
+  font-weight: 700; 
+  font-size: 1.1rem;
+}
+
+.button-rating {
+  margin: 8px;
+  padding: 12px 20px; /* Botones de calificación grandes */
+  font-size: 1rem;
+  font-weight: 700;
+  min-width: 120px; 
+  border: none; 
+  border-radius: var(--border-radius-rounder);
+  color: white;
+  /* Sombra 3D específica para cada botón */
+  transition: background-color 0.15s ease, transform 0.1s ease-out, box-shadow 0.1s ease-out;
+}
+
+.button-rating:active {
+  transform: translateY(2px);
+}
+
+.rating-again { background-color: var(--color-danger); box-shadow: 0 4px 0 #a71d2a; }
+.rating-again:hover { background-color: #c82333; }
+.rating-again:active { box-shadow: 0 2px 0 #a71d2a; }
+
+.rating-hard { background-color: var(--color-warning); color: var(--color-text-primary); box-shadow: 0 4px 0 #d9a000; }
+.rating-hard:hover { background-color: #e0a800; }
+.rating-hard:active { box-shadow: 0 2px 0 #d9a000; }
+
+.rating-good { background-color: var(--color-success); box-shadow: 0 4px 0 #4CAF50; }
+.rating-good:hover { background-color: #45a049; }
+.rating-good:active { box-shadow: 0 2px 0 #4CAF50; }
+
+.rating-easy { background-color: var(--color-primary); box-shadow: 0 4px 0 #005bb5; } 
+.rating-easy:hover { background-color: var(--color-primary-hover); }
+.rating-easy:active { box-shadow: 0 2px 0 #005bb5; }
+
+.loading-message {
+  text-align: center;
+  margin-top: 10px;
+  color: var(--color-text-secondary);
+}
+
+.review-page-footer {
+  margin-top: 20px;
+  text-align: center;
+}
+
+/* Estilos para la lista de tarjetas y items de tarjeta en DeckDetailPage */
+.card-list {
+  list-style: none;
+  padding: 0;
+}
+
+.card-item {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: 20px;
+  margin-bottom: 15px;
+  border-radius: var(--border-radius-rounder);
+  box-shadow: var(--box-shadow-soft);
+  display: flex;
+}
+
+.card-item:hover {
+  box-shadow: var(--box-shadow-lifted);
+  transform: translateY(-2px);
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.card-content-area {
+  margin-bottom: 10px;
+}
+
+.card-content-area strong {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--color-text-secondary);
+}
+
+.card-content-area pre { /* Para el JSON.stringify temporal */
+  white-space: pre-wrap; /* Para que el texto largo se ajuste */
+  word-break: break-all; /* Para que las palabras largas no rompan el layout */
+  background-color: #f8f9fa; /* Un fondo muy claro, casi blanco */
+  padding: 10px;
+  border-radius: var(--border-radius-soft); /* Usar variable de borde */
+  font-size: 0.9em;
+  border: 1px solid var(--color-border); /* Añadir un borde sutil */
+}
+
+.card-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px; /* Espacio entre botones de acción de la tarjeta */
+}
+
+.card-actions .button-link,
+.card-actions .button-danger {
+  padding: 3px 8px; /* Botones más pequeños para acciones de tarjeta */
+  font-size: 0.85rem;
+}
+
+/* Estilo para botón de éxito (ej. Añadir Nueva Tarjeta) */
+.button-success {
+  background-color: var(--color-success);
+  border-color: var(--color-success);
+  color: white;
+}
+
+.button-success:hover {
+  background-color: #1e7e34; /* Tono más oscuro de verde */
+  border-color: #1c7430;
+}
+
+/* Estilos para contenedores de página y formularios */
+.page-container {
+  max-width: 800px;
+  margin: 30px auto; /* Más margen superior */
+  padding: 25px;
+  background-color: var(--background-color);
+  border-radius: var(--border-radius-rounder); /* Más redondeado */
+  box-shadow: var(--shadow);
+  color: var(--text-primary);
+}
+
+.app-form {
+  margin-top: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block; /* Asegurar que la etiqueta esté en su propia línea */
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.form-group input[type="text"],
+.form-group textarea {
+  /* width: calc(100% - 18px);  Ya no es necesario si el input es block y width 100% */
+}
+
+.error-message {
+  color: var(--color-danger);
+  font-size: 0.9rem;
+  margin-top: 5px;
+  margin-bottom: 10px; /* Añadir un poco de espacio después */
+}
+
+.success-message {
+  color: var(--color-text-primary); /* Texto oscuro para mejor legibilidad sobre fondo verde */
+  background-color: #e6ffed; /* Fondo verde muy pálido */
+  border: 1px solid var(--color-success);
+  padding: 10px 15px;
+  border-radius: var(--border-radius-soft);
+  margin-top: 5px;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+}
+
+/* Estilos para la página de Estadísticas (StatsPage) */
+.stats-page-container {
+  /* page-container ya aplica estilos base */
+}
+
+.stats-section {
+  background-color: var(--color-surface); 
+  padding: 25px; /* Un poco más de padding */
+  border-radius: var(--border-radius-rounder); /* Usar el radio más redondeado */
+  margin-bottom: 25px;
+  /* La sombra ya viene de .page-container, si .stats-section es un hijo directo. 
+     Si no, podríamos añadir var(--box-shadow-soft) aquí. 
+     Asumiendo que .page-container es el contenedor principal con sombra. */
+}
+
+.stats-section h3 {
+  margin-top: 0;
+  margin-bottom: 15px; /* Más espacio después del título de sección */
+  color: var(--color-primary); 
+  font-size: 1.5rem; /* Un poco más grande para los títulos de sección de estadísticas */
+  border-bottom: 1px solid var(--color-border); /* Línea divisoria sutil */
+  padding-bottom: 10px; /* Espacio para la línea divisoria */
+}
+
+.streak-section {
+  text-align: center; /* Centrar contenido de la sección de racha */
+}
+
+.streak-value {
+  font-size: 3rem; /* Racha más grande y prominente */
+  font-weight: 700;
+  color: var(--duolingo-green); /* Usar el verde Duolingo para la racha */
+  text-align: center;
+  margin-top: 0.5rem;
+  line-height: 1.1;
+}
+
+.streak-label {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  margin-top: 5px;
+}
+
+.heatmap-section {
+  /* Los estilos del heatmap en sí se controlan con las clases .react-calendar-heatmap y .color-scale-X */
+}
+
+.heatmap-wrapper {
+  overflow-x: auto;
+  padding: 15px; /* Padding alrededor del heatmap para que no pegue a los bordes */
+  background-color: #fdfdfd; /* Fondo muy sutil para el wrapper del heatmap */
+  border-radius: var(--border-radius-soft);
+  margin-top: 10px;
+}
+
+.heatmap-legend {
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-color-box {
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Estilos para la navegación principal en App.tsx */
+.app-nav {
+  background-color: var(--color-surface);
+  padding: 15px 20px; 
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  margin-bottom: 30px; 
+  border-radius: var(--border-radius-rounder); 
+}
+
+.app-nav nav {
+  display: flex;
+  justify-content: center; 
+  align-items: center;
+  gap: 10px; 
+}
+
+.app-nav nav a {
+  font-weight: 700; 
+  font-size: 1.1rem; /* Aumentar tamaño de fuente */
+  padding: 12px 20px; /* Aumentar padding para botones más grandes */
+  text-decoration: none;
+  color: var(--color-text-secondary); 
+  position: relative;
+  border-radius: var(--border-radius-rounder); /* Hacerlos más redondeados, como píldoras más grandes */
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  display: flex; /* Para alinear icono y texto */
+  align-items: center; /* Alinear verticalmente */
+  gap: 8px; /* Espacio entre icono y texto */
+}
+
+/* Estilo para botones de navegación menos anchos */
+.app-nav nav a.nav-button-compact {
+  padding-left: 12px; /* Reducir padding horizontal */
+  padding-right: 12px;
+}
+
+.app-nav nav a .nav-icon {
+  /* Podríamos añadir estilos específicos al icono si fuera un span, pero con emoji directo no es tan necesario */
+  /* font-size: 1.2em; /* Hacer el icono un poco más grande que el texto si es necesario */
+}
+
+.app-nav nav a:hover {
+  color: var(--color-primary); 
+  background-color: #f0f8ff; 
+}
+
+.app-nav nav a.active { 
+  color: white; 
+  font-weight: 700;
+  background-color: var(--duolingo-green); 
+}
+
+/* Estilos para el editor Quill */
+.ql-toolbar {
+  border-top-left-radius: var(--border-radius-soft);
+  border-top-right-radius: var(--border-radius-soft);
+  border-color: var(--color-border) !important;
+}
+.ql-container {
+  border-bottom-left-radius: var(--border-radius-soft);
+  border-bottom-right-radius: var(--border-radius-soft);
+  border-color: var(--color-border) !important;
+  font-size: var(--font-size-base);
+}
+.ql-editor {
+  min-height: 150px;
+  background-color: var(--color-surface);
+  font-family: var(--font-family-sans-serif); /* Asegurar que Quill use la fuente principal */
+}
+.ql-editor.ql-blank::before{
+  color: var(--color-text-secondary);
+  font-style: normal; /* Quitar cursiva del placeholder */
+}
+
+/* Estilos para la página de importación */
+.import-page-container {
+  /* page-container ya aplica estilos base */
+}
+
+.import-dropzone {
+  border: 2px dashed var(--color-border);
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  cursor: pointer;
+  background-color: #fdfdfd; /* Un poco más claro que el fondo de página */
+  transition: background-color 0.2s ease;
+  margin-bottom: 20px;
+}
+
+.import-dropzone:hover,
+.import-dropzone.active-dropzone {
+  background-color: #e9ecef; /* Un poco más oscuro al pasar el mouse o arrastrar */
+  border-color: var(--color-primary);
+}
+
+.import-dropzone p {
+  margin-bottom: 0;
+  color: var(--color-text-secondary);
+}
+
+.import-summary {
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: var(--color-surface);
+}
+
+.import-summary h4 {
+  margin-top: 0;
+  color: var(--color-primary);
+}
+
+.code-block-example {
+  background-color: var(--color-background); /* Un fondo ligeramente diferente al de la página */
+  border: 1px solid var(--color-border);
+  padding: 15px;
+  border-radius: 4px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: var(--font-family-monospace);
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  max-height: 300px; /* Para que no sea demasiado largo */
+  overflow-y: auto; /* Scroll si el contenido es muy largo */
+}
+
+.warning-list, .error-list {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+.warning-list li {
+  color: var(--color-warning); /* Usar el color de advertencia para el texto */
+  /* O un color de texto oscuro si el fondo es amarillo */
+}
+
+.error-list li {
+  color: var(--color-danger);
+}
+
+/* Estilos para la configuración de la página de Repaso (ReviewPage Setup) */
+.review-setup-container {
+  text-align: center; /* Centrar el contenido de la configuración */
+}
+
+.deck-selection-container {
+  margin-top: 20px;
+  margin-bottom: 30px;
+}
+
+.deck-selection-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 15px;
+}
+
+.deck-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Grid responsivo */
+  gap: 15px;
+  max-width: 700px; /* Limitar el ancho máximo del grid */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.deck-select-button {
+  padding: 15px 20px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--border-radius-rounder);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  text-align: center;
+}
+
+.deck-select-button:hover {
+  border-color: var(--color-primary);
+  background-color: #e9f5ff; /* Similar al hover del nav */
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow-lifted);
+}
+
+.deck-select-button.active {
+  background-color: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+  box-shadow: var(--box-shadow-lifted);
+}
+
+.button-start-review {
+  /* Hereda estilos de 'button' base, pero podemos asegurar algunos específicos */
+  padding: 12px 30px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  background-color: var(--duolingo-green); /* Botón de inicio con el verde Duolingo */
+  color: white;
+  border: none;
+  box-shadow: 0 4px 0 #4CAF50; /* Sombra 3D como Duolingo */
+}
+
+.button-start-review:hover {
+  background-color: #45a049; /* Verde un poco más oscuro */
+}
+
+.button-start-review:active {
+  box-shadow: 0 2px 0 #4CAF50; /* Reducir sombra al hacer clic */
+  transform: translateY(2px);
+}
+
+.button-start-review:disabled {
+  background-color: var(--color-secondary);
+  box-shadow: 0 4px 0 #6c757d; /* Sombra 3D para deshabilitado */
+  opacity: 0.7;
+}
+
+/* === MODO COMPACTO === */
+.compact-mode {
+  --spacing-xs: 2px;
+  --spacing-sm: 4px;
+  --spacing-md: 8px;
+  --spacing-lg: 12px;
+  --spacing-xl: 16px;
+  --font-size-sm: 11px;
+  --font-size-md: 12px;
+  --font-size-lg: 14px;
+}
+
+.compact-mode .page-container {
+  padding: var(--spacing-lg);
+}
+
+.compact-mode h1 {
+  font-size: 24px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.compact-mode h2 {
+  font-size: 18px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.compact-mode h3 {
+  font-size: 16px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.compact-mode .settings-section {
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.compact-mode .setting-item {
+  padding: var(--spacing-sm) 0;
+}
+
+.compact-mode button {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: var(--font-size-md);
+}
+
+.compact-mode input, 
+.compact-mode select, 
+.compact-mode textarea {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-md);
+}
+
+/* === CONFIGURACIONES DE ANIMACIONES === */
+.no-animations * {
+  animation: none !important;
+  transition: none !important;
+}
+
+.no-animations .card:hover {
+  transform: none !important;
+}
+
+.no-animations button:hover {
+  transform: none !important;
+}
+
+/* === CONFIGURACIONES DE ACCESIBILIDAD === */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* === CONFIGURACIONES RESPONSIVAS === */
+@media (max-width: 768px) {
+  .page-container {
+    padding: 12px;
+  }
+  
+  .compact-mode .page-container {
+    padding: 8px;
+  }
+  
+  .settings-section {
+    padding: 16px;
+  }
+  
+  .compact-mode .settings-section {
+    padding: 12px;
+  }
+}
+
+/* === ESTADOS DE CONFIGURACIONES === */
+.settings-online {
+  border-left: 4px solid var(--success-color);
+}
+
+.settings-offline {
+  border-left: 4px solid var(--warning-color);
+}
+
+.settings-error {
+  border-left: 4px solid var(--error-color);
+}
+
+/* === SWITCHES PERSONALIZADOS === */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--border-color);
+  transition: 0.2s;
+  border-radius: 10px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: 0.2s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: var(--primary-color);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+input:disabled + .toggle-slider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* === CONFIGURACIONES DE DEBUG === */
+.debug-mode .debug-info {
+  position: fixed;
+  top: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px;
+  font-family: monospace;
+  font-size: 12px;
+  z-index: 9999;
+  max-width: 300px;
+  border-radius: 0 0 0 8px;
+}
+
+.debug-mode .debug-panel {
+  background: rgba(0, 0, 0, 0.9);
+  color: #00ff00;
+  font-family: monospace;
+  padding: 12px;
+  border-radius: 4px;
+  margin: 8px 0;
+  font-size: 11px;
+  border: 1px solid #333;
+}
+
+/* === NOTIFICACIONES === */
+.notification-permission {
+  background: var(--warning-color);
+  color: white;
+  padding: 12px;
+  border-radius: 6px;
+  margin: 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notification-permission button {
+  background: white;
+  color: var(--warning-color);
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* === INDICADORES DE ESTADO === */
+.status-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.status-online {
+  background-color: var(--success-color);
+  animation: pulse 2s infinite;
+}
+
+.status-offline {
+  background-color: var(--error-color);
+}
+
+.status-syncing {
+  background-color: var(--warning-color);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* === CONFIGURACIONES DE IDIOMA === */
+[lang="en"] .lang-es {
+  display: none;
+}
+
+[lang="es"] .lang-en {
+  display: none;
+}
+
+/* === CONFIGURACIONES DE ALTO CONTRASTE === */
+@media (prefers-contrast: high) {
+  :root {
+    --border-color: #000000;
+    --text-secondary: #000000;
+  }
+  
+  [data-theme="dark"] {
+    --border-color: #ffffff;
+    --text-secondary: #ffffff;
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "builds": [
+    {
+      "src": "package.json", 
+      "use": "@vercel/static-build",
+      "config": { 
+        "distDir": "dist" 
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, immutable, max-age=31536000"
+        }
+      ]
+    }
+  ]
+}

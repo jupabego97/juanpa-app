@@ -1,40 +1,68 @@
 import axios from 'axios';
 
 // La URL base de tu API FastAPI
-// Asegúrate de que coincida con cómo estás ejecutando tu backend.
-// Por defecto, uvicorn corre en http://127.0.0.1:8000
-// En Vite, las variables de entorno se acceden con import.meta.env.VITE_NOMBRE_VARIABLE
+// En producción, se usará la variable de entorno VITE_API_URL
+// En desarrollo, se usará localhost
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+
+console.log('🔗 API Base URL:', API_BASE_URL);
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    // Aquí podrías añadir otros headers por defecto, como tokens de autenticación
   },
+  timeout: 30000, // 30 segundos timeout
 });
 
-// Puedes añadir interceptores para manejar errores globalmente o tokens de autenticación
-// apiClient.interceptors.request.use(config => {
-//   const token = localStorage.getItem('authToken');
-//   if (token) {
-//     config.headers.Authorization = `Bearer ${token}`;
-//   }
-//   return config;
-// });
+// Interceptor para logging de requests en desarrollo
+if (import.meta.env.DEV) {
+  apiClient.interceptors.request.use(
+    (config) => {
+      console.log('📤 API Request:', config.method?.toUpperCase(), config.url);
+      return config;
+    },
+    (error) => {
+      console.error('❌ Request Error:', error);
+      return Promise.reject(error);
+    }
+  );
 
-// apiClient.interceptors.response.use(
-//   response => response,
-//   error => {
-//     // Manejo de errores global
-//     if (error.response && error.response.status === 401) {
-//       // Por ejemplo, redirigir al login o refrescar token
-//       console.error("Unauthorized, redirecting to login...");
-//       // window.location.href = '/login';
-//     }
-//     return Promise.reject(error);
-//   }
-// );
+  apiClient.interceptors.response.use(
+    (response) => {
+      console.log('📥 API Response:', response.status, response.config.url);
+      return response;
+    },
+    (error) => {
+      console.error('❌ Response Error:', error.response?.status, error.config?.url, error.message);
+      return Promise.reject(error);
+    }
+  );
+}
+
+// Interceptor para manejo de errores global
+apiClient.interceptors.response.use(
+  response => response,
+  error => {
+    // Manejo de errores de red
+    if (!error.response) {
+      console.error('❌ Error de conexión:', error.message);
+      // Podrías mostrar un toast o notificación aquí
+      return Promise.reject(new Error('Error de conexión. Verifica tu conexión a internet.'));
+    }
+
+    // Manejo de errores HTTP específicos
+    if (error.response.status === 401) {
+      console.error("❌ No autorizado");
+      // Aquí podrías redirigir al login si tuvieras autenticación
+    } else if (error.response.status >= 500) {
+      console.error("❌ Error del servidor");
+      // Podrías mostrar un mensaje de error del servidor
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export default apiClient;
 

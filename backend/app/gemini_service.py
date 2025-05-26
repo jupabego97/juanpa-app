@@ -46,8 +46,11 @@ class GeminiCardGenerator:
         Args:
             api_key: API key de Google. Si no se proporciona, se buscará en variables de entorno.
         """
-        # Usar API key directamente para testing
-        self.api_key = "AIzaSyDS8DZT0UIKjn-A25m22nBS0gWicFDeyNs"
+        # Obtener API key de variables de entorno o parámetro
+        self.api_key = api_key or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        
+        if not self.api_key:
+            raise ValueError("API key de Google/Gemini no configurada. Configura GOOGLE_API_KEY o GEMINI_API_KEY en las variables de entorno.")
         
         self.client = genai.Client(api_key=self.api_key)
         self.model_name = "gemini-2.5-flash-preview-05-20"
@@ -398,5 +401,8 @@ def get_gemini_generator() -> GeminiCardGenerator:
 
 def is_gemini_available() -> bool:
     """Verificar si Gemini está disponible."""
-    # API key hardcodeada para testing
-    return True 
+    try:
+        api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        return api_key is not None and len(api_key.strip()) > 0
+    except:
+        return False 

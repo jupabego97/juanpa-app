@@ -5,7 +5,8 @@ Maneja configuraciones por entorno y variables de entorno.
 
 import os
 from typing import Optional, List
-from pydantic import BaseSettings, Field, validator
+from pydantic import Field, validator
+from pydantic_settings import BaseSettings
 from pathlib import Path
 
 
@@ -133,10 +134,11 @@ class Settings(BaseSettings):
         """Obtiene la ruta absoluta del directorio de uploads."""
         return Path(self.uploads_dir).resolve()
     
-    class Config:
-        env_prefix = "JUANPA_"
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = {
+        "env_prefix": "JUANPA_",
+        "env_file": ".env",
+        "env_file_encoding": "utf-8"
+    }
 
 
 class DevelopmentSettings(Settings):

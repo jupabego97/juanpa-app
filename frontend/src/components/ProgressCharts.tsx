@@ -172,7 +172,7 @@ const ProgressCharts: React.FC<ProgressChartsProps> = ({ className = "" }) => {
                     stroke="#6b7280"
                   />
                   <Tooltip 
-                    content={<CustomTooltip formatter={(value) => [`${((value / (stats.dailyReviews.find(d => d.cardsReviewed === value)?.cardsReviewed || 1)) * 100).toFixed(1)}%`, 'Precisión']} />}
+                    content={<CustomTooltip formatter={(value) => [`${((value / stats.dailyReviews.find(d => d.cardsReviewed === value)?.cardsReviewed || 1) * 100).toFixed(1)}%`, 'Precisión']} />}
                   />
                   <Line 
                     type="monotone" 

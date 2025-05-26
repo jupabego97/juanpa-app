@@ -200,7 +200,7 @@ const ReportExporter: React.FC<ReportExporterProps> = ({ className = "" }) => {
       });
 
       // Pie de página
-      const pageCount = (pdf as any).internal.getNumberOfPages();
+      const pageCount = pdf.internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         pdf.setPage(i);
         pdf.setFontSize(8);

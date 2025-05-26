@@ -132,7 +132,7 @@ const CreateCardPage: React.FC = () => {
           <div className="form-field" style={{ display: 'flex', flexDirection: 'column' }}>
             <label htmlFor="card-type" style={{ marginBottom: '8px', fontWeight: '600', color: '#1f2937' }}>
               🃏 Tipo de Tarjeta:
-        </label>
+            </label>
             <select
               id="card-type"
               value={cardType}
@@ -149,7 +149,7 @@ const CreateCardPage: React.FC = () => {
               <option value="cloze">Cloze (Completar huecos)</option>
             </select>
           </div>
-      </div>
+        </div>
 
         {/* Editor de contenido */}
         {cardType === 'basic' ? (
@@ -203,8 +203,8 @@ const CreateCardPage: React.FC = () => {
                 fontSize: '14px',
                 fontFamily: 'inherit'
               }}
-              />
-            </div>
+            />
+          </div>
         )}
 
         {/* Etiquetas */}
@@ -270,7 +270,7 @@ const CreateCardPage: React.FC = () => {
             }}
           >
             {isLoading ? '⏳ Creando...' : '✅ Crear Tarjeta'}
-        </button>
+          </button>
           <button 
             type="button" 
             onClick={() => navigate(selectedDeckId ? `/decks/${selectedDeckId}` : '/decks')} 
@@ -286,8 +286,8 @@ const CreateCardPage: React.FC = () => {
               fontWeight: '500'
             }}
           >
-          Cancelar
-        </button>
+            Cancelar
+          </button>
         </div>
       </form>
     </div>

@@ -113,6 +113,7 @@ app.add_middleware(LoggingMiddleware)       # Logging (más interno)
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "*",  # Permitir todos los orígenes (temporal para desarrollo)
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -207,7 +208,13 @@ def create_deck(*, session: Session = Depends(get_session), deck_in: m.DeckCreat
 
 @app.get("/api/v1/decks/", response_model=List[m.DeckRead])
 def read_decks(*, session: Session = Depends(get_session), skip: int = 0, limit: int = 100):
-    decks = session.exec(select(db.Deck).offset(skip).limit(limit)).all()
+    # Filtrar mazos no eliminados
+    decks = session.exec(
+        select(db.Deck)
+        .where(db.Deck.is_deleted == False)
+        .offset(skip)
+        .limit(limit)
+    ).all()
     return decks
 
 @app.get("/api/v1/decks/{deck_id}", response_model=m.DeckReadWithCards)
@@ -239,8 +246,15 @@ def delete_deck(*, session: Session = Depends(get_session), deck_id: int):
     deck = session.get(db.Deck, deck_id)
     if not deck:
         raise HTTPException(status_code=404, detail="Deck not found")
-    session.delete(deck)
+    
+    # Soft delete: marcar como eliminado en lugar de eliminar físicamente
+    deck.is_deleted = True
+    deck.deleted_at = datetime.now(timezone.utc)
+    deck.updated_at = datetime.now(timezone.utc)  # Actualizar timestamp para sincronización
+    
+    session.add(deck)
     session.commit()
+    session.refresh(deck)
     return deck
 
 @app.post("/api/v1/cards/", response_model=List[m.CardRead])
@@ -289,8 +303,15 @@ def delete_card(*, session: Session = Depends(get_session), card_id: int):
     card = session.get(db.Card, card_id)
     if not card:
         raise HTTPException(status_code=404, detail="Card not found")
-    session.delete(card)
+    
+    # Soft delete: marcar como eliminado en lugar de eliminar físicamente
+    card.is_deleted = True
+    card.deleted_at = datetime.now(timezone.utc)
+    card.updated_at = datetime.now(timezone.utc)  # Actualizar timestamp para sincronización
+    
+    session.add(card)
     session.commit()
+    session.refresh(card)
     return card
 
 @app.post("/api/v1/cards/{card_id}/review", response_model=m.CardRead)
@@ -375,6 +396,210 @@ async def get_gemini_status():
             last_error=str(e)
         ) 
 
+@app.post("/api/v1/gemini/generate-cards", response_model=m.CardGenerationResult)
+async def generate_cards_with_gemini(
+    *,
+    session: Session = Depends(get_session),
+    request: m.CardGenerationRequest
+):
+    """Genera tarjetas usando Gemini AI."""
+    start_time = time.time()
+    logger.info(f"=== GENERACIÓN DE TARJETAS CON GEMINI INICIADA ===")
+    logger.info(f"Request: topic='{request.topic}', num_cards={request.num_cards}, deck_id={request.deck_id}")
+    
+    try:
+        # Verificar que Gemini esté disponible
+        if not GEMINI_AVAILABLE:
+            raise HTTPException(
+                status_code=503,
+                detail="Servicio Gemini no disponible. Verifica la configuración."
+            )
+        
+        if not is_gemini_available():
+            raise HTTPException(
+                status_code=503,
+                detail="Gemini no está configurado correctamente. Verifica la API key."
+            )
+        
+        # Manejar creación de mazo si es necesario
+        target_deck = None
+        if request.deck_id == -1:
+            # Crear nuevo mazo
+            if not request.deck_name:
+                raise HTTPException(
+                    status_code=400,
+                    detail="deck_name es requerido cuando deck_id = -1"
+                )
+            
+            # Verificar si ya existe un mazo con ese nombre
+            existing_deck = session.exec(
+                select(db.Deck).where(db.Deck.name == request.deck_name)
+            ).first()
+            
+            if existing_deck:
+                raise HTTPException(
+                    status_code=409,
+                    detail=f"Ya existe un mazo con el nombre '{request.deck_name}'"
+                )
+            
+            # Crear el nuevo mazo
+            target_deck = db.Deck(
+                name=request.deck_name,
+                description=request.deck_description or f"Mazo generado por IA sobre: {request.topic}",
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc)
+            )
+            session.add(target_deck)
+            session.flush()  # Para obtener el ID
+            logger.info(f"Nuevo mazo creado: '{target_deck.name}' (ID: {target_deck.id})")
+        else:
+            # Usar mazo existente
+            target_deck = session.get(db.Deck, request.deck_id)
+            if not target_deck:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Mazo con ID {request.deck_id} no encontrado"
+                )
+            logger.info(f"Usando mazo existente: '{target_deck.name}' (ID: {target_deck.id})")
+        
+        # Generar tarjetas con Gemini
+        logger.info("Llamando al servicio Gemini...")
+        generator = get_gemini_generator()
+        
+        # Crear request para el servicio Gemini (usando el modelo del servicio)
+        gemini_request = GeminiServiceCardGenerationRequest(
+            topic=request.topic,
+            num_cards=request.num_cards,
+            difficulty=request.difficulty,
+            card_type=request.card_type,
+            language=request.language,
+            context=request.context
+        )
+        
+        # Generar las tarjetas
+        gemini_response = await generator.generate_cards(gemini_request)
+        
+        # El servicio Gemini no tiene campo 'success', verificar si hay tarjetas
+        if not gemini_response.cards:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error generando tarjetas: No se generaron tarjetas válidas"
+            )
+        
+        logger.info(f"Gemini generó {len(gemini_response.cards)} tarjetas")
+        
+        # Crear las tarjetas en la base de datos
+        created_cards = []
+        warnings = []
+        errors = []
+        
+        for i, generated_card in enumerate(gemini_response.cards):
+            try:
+                # Determinar contenido basado en el tipo de tarjeta
+                front_content = None
+                back_content = None
+                cloze_data = None
+                
+                if hasattr(generated_card, 'cloze_text') and generated_card.cloze_text:
+                    # Tarjeta cloze
+                    cloze_data = {"cloze_text": generated_card.cloze_text}
+                else:
+                    # Tarjeta estándar
+                    front_content = generated_card.front_content
+                    back_content = generated_card.back_content
+                
+                # Crear la tarjeta en la DB
+                db_card = db.Card(
+                    deck_id=target_deck.id or 0,  # Asegurar que no sea None
+                    front_content=front_content,
+                    back_content=back_content,
+                    cloze_data=cloze_data,
+                    tags=generated_card.tags or [],
+                    created_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(timezone.utc),
+                    # Inicializar campos FSRS
+                    next_review_at=datetime.now(timezone.utc),
+                    fsrs_state="new",
+                    fsrs_stability=2.5,
+                    fsrs_difficulty=6.0,
+                    fsrs_lapses=0
+                )
+                
+                session.add(db_card)
+                session.flush()  # Para obtener el ID
+                
+                # Convertir a CardRead para la respuesta
+                card_read = m.CardRead(
+                    id=db_card.id or 0,
+                    deck_id=db_card.deck_id,
+                    front_content=db_card.front_content,
+                    back_content=db_card.back_content,
+                    cloze_data=db_card.cloze_data,
+                    tags=db_card.tags,
+                    next_review_at=db_card.next_review_at,
+                    fsrs_stability=db_card.fsrs_stability,
+                    fsrs_difficulty=db_card.fsrs_difficulty,
+                    fsrs_lapses=db_card.fsrs_lapses,
+                    fsrs_state=db_card.fsrs_state,
+                    created_at=db_card.created_at,
+                    updated_at=db_card.updated_at
+                )
+                
+                created_cards.append(card_read)
+                logger.info(f"Tarjeta {i+1} creada con ID: {db_card.id}")
+                
+            except Exception as e:
+                error_msg = f"Error creando tarjeta {i+1}: {str(e)}"
+                logger.error(error_msg)
+                errors.append(error_msg)
+        
+        # Guardar cambios
+        session.commit()
+        
+        execution_time = time.time() - start_time
+        logger.info(f"Generación completada: {len(created_cards)} tarjetas creadas en {execution_time:.2f}s")
+        
+        # Preparar metadatos
+        metadata = {
+            "generation_time": execution_time,
+            "gemini_model": getattr(generator, 'model_name', 'unknown'),
+            "deck_id": target_deck.id,
+            "deck_name": target_deck.name,
+            "request_params": {
+                "topic": request.topic,
+                "num_cards": request.num_cards,
+                "difficulty": request.difficulty,
+                "card_type": request.card_type,
+                "language": request.language
+            },
+            "gemini_metadata": gemini_response.metadata
+        }
+        
+        return m.CardGenerationResult(
+            success=True,
+            cards_created=created_cards,
+            metadata=metadata,
+            errors=errors,
+            warnings=warnings
+        )
+        
+    except HTTPException:
+        # Re-lanzar HTTPExceptions tal como están
+        raise
+    except Exception as e:
+        execution_time = time.time() - start_time
+        error_msg = f"Error inesperado generando tarjetas: {str(e)}"
+        logger.error(error_msg)
+        logger.error(f"Tiempo transcurrido antes del error: {execution_time:.2f}s")
+        
+        return m.CardGenerationResult(
+            success=False,
+            cards_created=[],
+            metadata={"generation_time": execution_time},
+            errors=[error_msg],
+            warnings=[]
+        )
+
 @app.get("/api/v1/sync/pull", response_model=m.PullResponse)
 def sync_pull(
     *,
@@ -409,23 +634,22 @@ def sync_pull(
     deck_sync_reads = []
     for deck in decks:
         deck_sync_reads.append(m.DeckSyncRead(
-            id=deck.id,
+            id=deck.id or 0,
             name=deck.name,
             description=deck.description,
             created_at=deck.created_at,
             updated_at=deck.updated_at,
-            is_deleted=False,  # Por ahora no manejamos soft delete
-            deleted_at=None
+            is_deleted=deck.is_deleted,  # Usar valor real de la base de datos
+            deleted_at=deck.deleted_at
         ))
     
     card_sync_reads = []
     for card in cards:
         card_sync_reads.append(m.CardSyncRead(
-            id=card.id,
+            id=card.id or 0,
             deck_id=card.deck_id,
             front_content=card.front_content,
             back_content=card.back_content,
-            raw_cloze_text=None,  # No tenemos este campo en la DB, usar None
             cloze_data=card.cloze_data,
             tags=card.tags,
             next_review_at=card.next_review_at,
@@ -435,8 +659,9 @@ def sync_pull(
             fsrs_state=card.fsrs_state,
             created_at=card.created_at,
             updated_at=card.updated_at,
-            is_deleted=False,  # Por ahora no manejamos soft delete
-            deleted_at=None
+            is_deleted=card.is_deleted,  # Usar valor real de la base de datos
+            deleted_at=card.deleted_at,
+            raw_cloze_text=None  # Corregido: usar None en lugar de card.raw_cloze_text
         ))
     
     return m.PullResponse(
@@ -453,388 +678,148 @@ def sync_push(
 ):
     """
     Endpoint para push de sincronización.
-    Procesa cambios del cliente y retorna conflictos si los hay.
+    Recibe cambios del cliente y los aplica al servidor.
     """
-    logger.info(f"=== SYNC PUSH INICIADO ===")
-    logger.info(f"Payload recibido: new_decks={payload.new_decks}, new_cards={payload.new_cards}")
-    
-    # Asegurar que client_timestamp tenga timezone
-    if payload.client_timestamp.tzinfo is None:
-        client_timestamp = payload.client_timestamp.replace(tzinfo=timezone.utc)
-    else:
-        client_timestamp = payload.client_timestamp
-    
     conflicts = []
-    created_decks = []
-    created_cards = []
     
-    # Procesar nuevos mazos del cliente
-    if payload.new_decks:
-        logger.info(f"Procesando {len(payload.new_decks)} mazos nuevos")
-        for i, new_deck_data in enumerate(payload.new_decks):
-            logger.info(f"Procesando mazo {i+1}: {new_deck_data}")
-            try:
-                # Verificar si ya existe un mazo con ese nombre
-                existing_deck = session.exec(
-                    select(db.Deck).where(db.Deck.name == new_deck_data.name)
-                ).first()
-                
+    # Procesar mazos
+    for deck_data in payload.decks:
+        try:
+            if deck_data.id and deck_data.id > 0:
+                # Actualizar mazo existente
+                existing_deck = session.get(db.Deck, deck_data.id)
                 if existing_deck:
-                    logger.warning(f"Conflicto: Ya existe mazo con nombre '{new_deck_data.name}' (ID: {existing_deck.id})")
-                    # Conflicto: ya existe un mazo con ese nombre
-                    conflicts.append(m.ConflictInfo(
-                        type="deck",
-                        id=existing_deck.id,
-                        message=f"Ya existe un mazo con el nombre '{new_deck_data.name}' (ID: {existing_deck.id})"
-                    ))
-                    continue
-
-                logger.info(f"Creando nuevo mazo: {new_deck_data.name}")
-                # Crear el nuevo mazo
-                db_deck = db.Deck(
-                    name=new_deck_data.name,
-                    description=new_deck_data.description,
-                    created_at=datetime.now(timezone.utc),
-                    updated_at=datetime.now(timezone.utc)
+                    # Verificar conflictos de timestamp
+                    if existing_deck.updated_at > deck_data.updated_at:
+                        conflicts.append(m.ConflictInfo(
+                            type="deck",
+                            id=existing_deck.id or 1,  # Usar ID existente
+                            client_timestamp=deck_data.updated_at,
+                            server_timestamp=existing_deck.updated_at
+                        ))
+                        continue
+                    
+                    # Actualizar campos
+                    existing_deck.name = deck_data.name
+                    existing_deck.description = deck_data.description
+                    existing_deck.updated_at = deck_data.updated_at
+                    existing_deck.is_deleted = deck_data.is_deleted
+                    existing_deck.deleted_at = deck_data.deleted_at
+                    session.add(existing_deck)
+                else:
+                    # Crear nuevo mazo con ID específico (puede causar conflictos)
+                    new_deck = db.Deck(
+                        id=deck_data.id,
+                        name=deck_data.name,
+                        description=deck_data.description,
+                        created_at=deck_data.created_at,
+                        updated_at=deck_data.updated_at,
+                        is_deleted=deck_data.is_deleted,
+                        deleted_at=deck_data.deleted_at
+                    )
+                    session.add(new_deck)
+            else:
+                # Crear nuevo mazo (sin ID específico)
+                new_deck = db.Deck(
+                    name=deck_data.name,
+                    description=deck_data.description,
+                    created_at=deck_data.created_at,
+                    updated_at=deck_data.updated_at,
+                    is_deleted=deck_data.is_deleted,
+                    deleted_at=deck_data.deleted_at
                 )
-                session.add(db_deck)
-                session.flush()  # Para obtener el ID
-                
-                logger.info(f"Mazo creado con ID: {db_deck.id}")
-                
-                # Convertir a DeckSyncRead para la respuesta
-                created_deck = m.DeckSyncRead(
-                    id=db_deck.id,
-                    name=db_deck.name,
-                    description=db_deck.description,
-                    created_at=db_deck.created_at,
-                    updated_at=db_deck.updated_at,
-                    is_deleted=False,
-                    deleted_at=None
-                )
-                created_decks.append(created_deck)
-                logger.info(f"Mazo añadido a created_decks: {created_deck}")
-                
-            except Exception as e:
-                logger.error(f"Error creando mazo '{new_deck_data.name}': {e}")
-                # Para errores genéricos durante la creación de un mazo nuevo,
-                # ConflictInfo podría no ser el adecuado si no hay un ID > 0.
-                # Por ahora, lo mantenemos simple, pero esto podría necesitar revisión.
-                # Si no tenemos un existing_deck.id, este error persistirá para el 'id'.
-                # Una alternativa sería omitir 'id' o usar un tipo de error diferente.
-                conflicts.append(m.ConflictInfo(
-                    type="deck",
-                    id= getattr(new_deck_data, 'id', 1) if not hasattr(existing_deck, 'id') else existing_deck.id if existing_deck else 1,
-                    message=f"Error creando mazo '{new_deck_data.name}': {str(e)}"
-                ))
-    else:
-        logger.info("No hay mazos nuevos en el payload")
+                session.add(new_deck)
+        except Exception as e:
+            conflicts.append(m.ConflictInfo(
+                type="deck",
+                id=1,  # Placeholder para errores genéricos
+                client_timestamp=deck_data.updated_at,
+                server_timestamp=datetime.now(timezone.utc)
+            ))
     
-    # Procesar nuevas tarjetas del cliente
-    if payload.new_cards:
-        for new_card_data in payload.new_cards:
-            try:
-                # Verificar que el deck existe
-                deck = session.get(db.Deck, new_card_data.deck_id)
-                if not deck:
-                    # Si el mazo no existe, el conflicto es sobre la tarjeta nueva
-                    # que no se puede crear.
-                    conflicts.append(m.ConflictInfo(
-                        type="card",
-                        id=getattr(new_card_data, 'id', 1),
-                        message=f"Mazo con ID {new_card_data.deck_id} no encontrado al intentar crear tarjeta"
-                    ))
-                    continue
-                
-                # Crear la nueva tarjeta (simplificado)
-                db_card = db.Card(
-                    deck_id=new_card_data.deck_id,
-                    front_content=new_card_data.front_content,
-                    back_content=new_card_data.back_content,
-                    cloze_data=new_card_data.cloze_data,
-                    tags=new_card_data.tags,
-                    created_at=datetime.now(timezone.utc),
-                    updated_at=datetime.now(timezone.utc)
+    # Procesar tarjetas
+    for card_data in payload.cards:
+        try:
+            if card_data.id and card_data.id > 0:
+                # Actualizar tarjeta existente
+                existing_card = session.get(db.Card, card_data.id)
+                if existing_card:
+                    # Verificar conflictos de timestamp
+                    if existing_card.updated_at > card_data.updated_at:
+                        conflicts.append(m.ConflictInfo(
+                            type="card",
+                            id=existing_card.id or 1,  # Usar ID existente
+                            client_timestamp=card_data.updated_at,
+                            server_timestamp=existing_card.updated_at
+                        ))
+                        continue
+                    
+                    # Actualizar campos
+                    existing_card.deck_id = card_data.deck_id
+                    existing_card.front_content = card_data.front_content
+                    existing_card.back_content = card_data.back_content
+                    existing_card.cloze_data = card_data.cloze_data
+                    existing_card.tags = card_data.tags
+                    existing_card.next_review_at = card_data.next_review_at
+                    existing_card.fsrs_stability = card_data.fsrs_stability
+                    existing_card.fsrs_difficulty = card_data.fsrs_difficulty
+                    existing_card.fsrs_lapses = card_data.fsrs_lapses
+                    existing_card.fsrs_state = card_data.fsrs_state
+                    existing_card.updated_at = card_data.updated_at
+                    existing_card.is_deleted = card_data.is_deleted
+                    existing_card.deleted_at = card_data.deleted_at
+                    session.add(existing_card)
+                else:
+                    # Crear nueva tarjeta con ID específico
+                    new_card = db.Card(
+                        id=card_data.id,
+                        deck_id=card_data.deck_id,
+                        front_content=card_data.front_content,
+                        back_content=card_data.back_content,
+                        cloze_data=card_data.cloze_data,  # Corregido: usar cloze_data en lugar de raw_cloze_text
+                        tags=card_data.tags,
+                        next_review_at=card_data.next_review_at,
+                        fsrs_stability=card_data.fsrs_stability,
+                        fsrs_difficulty=card_data.fsrs_difficulty,
+                        fsrs_lapses=card_data.fsrs_lapses,
+                        fsrs_state=card_data.fsrs_state,
+                        created_at=card_data.created_at,
+                        updated_at=card_data.updated_at,
+                        is_deleted=card_data.is_deleted,
+                        deleted_at=card_data.deleted_at
+                    )
+                    session.add(new_card)
+            else:
+                # Crear nueva tarjeta (sin ID específico)
+                new_card = db.Card(
+                    deck_id=card_data.deck_id,
+                    front_content=card_data.front_content,
+                    back_content=card_data.back_content,
+                    cloze_data=card_data.cloze_data,  # Corregido: usar cloze_data en lugar de raw_cloze_text
+                    tags=card_data.tags,
+                    next_review_at=card_data.next_review_at,
+                    fsrs_stability=card_data.fsrs_stability,
+                    fsrs_difficulty=card_data.fsrs_difficulty,
+                    fsrs_lapses=card_data.fsrs_lapses,
+                    fsrs_state=card_data.fsrs_state,
+                    created_at=card_data.created_at,
+                    updated_at=card_data.updated_at,
+                    is_deleted=card_data.is_deleted,
+                    deleted_at=card_data.deleted_at
                 )
-                
-                session.add(db_card)
-                session.flush()  # Para obtener el ID
-                
-                # Convertir a CardSyncRead para la respuesta
-                created_card = m.CardSyncRead(
-                    id=db_card.id,
-                    deck_id=db_card.deck_id,
-                    front_content=db_card.front_content,
-                    back_content=db_card.back_content,
-                    cloze_data=db_card.cloze_data,
-                    tags=db_card.tags,
-                    next_review_at=db_card.next_review_at,
-                    fsrs_stability=db_card.fsrs_stability,
-                    fsrs_difficulty=db_card.fsrs_difficulty,
-                    fsrs_lapses=db_card.fsrs_lapses,
-                    fsrs_state=db_card.fsrs_state,
-                    created_at=db_card.created_at,
-                    updated_at=db_card.updated_at,
-                    is_deleted=False,
-                    deleted_at=None
-                )
-                created_cards.append(created_card)
-                
-            except Exception as e:
-                # Error genérico creando una tarjeta
-                conflicts.append(m.ConflictInfo(
-                    type="card",
-                    id=getattr(new_card_data, 'id', 1),
-                    message=f"Error creando tarjeta en mazo ID {new_card_data.deck_id}: {str(e)}"
-                ))
+                session.add(new_card)
+        except Exception as e:
+            conflicts.append(m.ConflictInfo(
+                type="card",
+                id=1,  # Placeholder para errores genéricos
+                client_timestamp=card_data.updated_at,
+                server_timestamp=datetime.now(timezone.utc)
+            ))
     
-    # Commit cambios
-    try:
-        session.commit()
-        message = "Sincronización completada exitosamente"
-        if conflicts:
-            message += f" con {len(conflicts)} conflictos"
-    except Exception as e:
-        session.rollback()
-        raise HTTPException(status_code=500, detail=f"Error guardando cambios: {str(e)}")
+    # Guardar cambios
+    session.commit()
     
     return m.PushResponse(
-        message=message,
-        created_decks=created_decks if created_decks else None,
-        created_cards=created_cards if created_cards else None,
-        conflicts=conflicts
-    ) 
-
-# === ENDPOINTS PARA GENERACIÓN DE TARJETAS CON GEMINI ===
-
-@app.post("/api/v1/gemini/generate-cards", response_model=m.CardGenerationResult, status_code=201)
-async def generate_cards_with_gemini(
-    *,
-    session: Session = Depends(get_session),
-    request_data: m.CardGenerationRequest # Usa el modelo Pydantic para el cuerpo del request
-):
-    """
-    Genera tarjetas usando Gemini y las guarda en la base de datos.
-    """
-    logger.info(f"Solicitud de generación de tarjetas para el tema: {request_data.topic}, Mazo ID: {request_data.deck_id}")
-
-    if not GEMINI_AVAILABLE:
-        logger.error("Servicio Gemini no disponible para generar tarjetas.")
-        raise HTTPException(status_code=503, detail="Servicio Gemini no disponible")
-
-    # 1. Verificar/crear el mazo según sea necesario
-    actual_deck_id: int  # Declarar tipo explícitamente
-    
-    if request_data.deck_id == -1:
-        # Crear un mazo nuevo
-        logger.info(f"Creando nuevo mazo: '{request_data.deck_name}'")
-        try:
-            # Verificar si ya existe un mazo con ese nombre
-            existing_deck = session.exec(
-                select(db.Deck).where(db.Deck.name == request_data.deck_name)
-            ).first()
-            
-            if existing_deck:
-                logger.warning(f"Ya existe un mazo con el nombre '{request_data.deck_name}' (ID: {existing_deck.id})")
-                raise HTTPException(
-                    status_code=409, 
-                    detail=f"Ya existe un mazo con el nombre '{request_data.deck_name}'. Usa un nombre diferente o selecciona el mazo existente."
-                )
-            
-            # Crear el nuevo mazo - asegurar que deck_name no es None
-            deck_name = request_data.deck_name
-            if not deck_name:  # This should not happen due to validation, but just in case
-                raise HTTPException(status_code=400, detail="deck_name es requerido para crear un mazo nuevo")
-                
-            new_deck = db.Deck(
-                name=deck_name,
-                description=request_data.deck_description or f"Mazo generado con IA sobre: {request_data.topic}",
-                created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc)
-            )
-            session.add(new_deck)
-            session.flush()  # Para obtener el ID
-            
-            deck = new_deck
-            actual_deck_id = new_deck.id
-            if actual_deck_id is None:
-                raise HTTPException(status_code=500, detail="Error obteniendo ID del mazo creado")
-                
-            logger.info(f"Mazo creado exitosamente con ID: {actual_deck_id}")
-            
-        except HTTPException:
-            raise  # Re-lanzar HTTPExceptions
-        except Exception as e:
-            logger.error(f"Error creando nuevo mazo '{request_data.deck_name}': {e}")
-            raise HTTPException(status_code=500, detail=f"Error creando el mazo: {e}")
-    else:
-        # Verificar que el mazo existente exista
-        deck = session.get(db.Deck, request_data.deck_id)
-        if not deck:
-            logger.warning(f"Mazo con ID {request_data.deck_id} no encontrado para generación de tarjetas.")
-            raise HTTPException(status_code=404, detail=f"Mazo con ID {request_data.deck_id} no encontrado")
-        
-        actual_deck_id = request_data.deck_id
-        logger.info(f"Usando mazo existente: '{deck.name}' (ID: {actual_deck_id})")
-
-    gemini_generator = get_gemini_generator()
-    cards_created_in_db = []
-    generation_errors = []
-    generation_warnings = []
-
-    try:
-        # 2. Llamar al servicio Gemini para generar el contenido de las tarjetas
-        logger.info(f"Llamando a Gemini para generar {request_data.num_cards} tarjetas sobre '{request_data.topic}' en mazo '{deck.name}'")
-        
-        # Crear un request compatible con gemini_service usando un diccionario
-        gemini_request_dict = {
-            "topic": request_data.topic,
-            "num_cards": request_data.num_cards,
-            "difficulty": request_data.difficulty,
-            "card_type": request_data.card_type,
-            "language": request_data.language,
-            "context": request_data.context
-        }
-        
-        # Crear la instancia del tipo correcto para gemini_service
-        from .gemini_service import CardGenerationRequest as GeminiCardGenerationRequest
-        gemini_request = GeminiCardGenerationRequest(**gemini_request_dict)
-        
-        generated_card_contents_response = await gemini_generator.generate_cards(gemini_request)
-        
-        logger.info(f"Gemini procesó la solicitud. Tarjetas propuestas: {len(generated_card_contents_response.cards) if generated_card_contents_response else 'Error en respuesta'}")
-
-        # 3. Procesar la respuesta y crear tarjetas en la BD
-        # Asegurarnos que generated_card_contents_response sea del tipo CardGenerationResponse
-        if not isinstance(generated_card_contents_response, GeminiServiceCardGenerationResponse):
-             logger.error(f"Respuesta inesperada de Gemini: {type(generated_card_contents_response)}")
-             generation_errors.append("Respuesta inesperada del servicio Gemini.")
-        else:
-            logger.info(f"Respuesta de Gemini válida. Procesando {len(generated_card_contents_response.cards)} tarjetas...")
-            
-            if generated_card_contents_response.cards:
-                for i, card_data in enumerate(generated_card_contents_response.cards): # card_data es ahora un objeto GeminiServiceGeneratedCard
-                    try:
-                        logger.info(f"=== PROCESANDO TARJETA {i+1}/{len(generated_card_contents_response.cards)} ===")
-                        # LOGGING DETALLADO PARA DEBUGGING
-                        logger.info(f"Procesando tarjeta de Gemini:")
-                        logger.info(f"  - front_content: {card_data.front_content}")
-                        logger.info(f"  - back_content: {card_data.back_content}")
-                        logger.info(f"  - cloze_text: {card_data.cloze_text}")
-                        logger.info(f"  - tags: {card_data.tags}")
-                        
-                        # Convertir el contenido a la estructura JSON esperada por db.Card
-                        front_content_json = card_data.front_content 
-                        back_content_json = card_data.back_content   
-                        cloze_text_for_db = card_data.cloze_text     
-
-                        # Asegurar que el contenido sea una lista de bloques como espera db.Card.front_content/back_content
-                        if isinstance(front_content_json, str):
-                            logger.info(f"Convirtiendo front_content de string a lista de bloques: {front_content_json}")
-                            front_content_json = [{"type": "text", "content": front_content_json}]
-                        elif front_content_json is None and cloze_text_for_db:
-                            logger.info("front_content es None, usando lista vacía para tarjeta cloze")
-                            front_content_json = [] 
-                        
-                        if isinstance(back_content_json, str):
-                            logger.info(f"Convirtiendo back_content de string a lista de bloques: {back_content_json}")
-                            back_content_json = [{"type": "text", "content": back_content_json}]
-                        elif back_content_json is None and cloze_text_for_db:
-                            logger.info("back_content es None, usando lista vacía para tarjeta cloze")
-                            back_content_json = [] 
-
-                        logger.info(f"Contenido procesado:")
-                        logger.info(f"  - front_content_json: {front_content_json}")
-                        logger.info(f"  - back_content_json: {back_content_json}")
-
-                        db_card_payload = {
-                            "deck_id": actual_deck_id,  # Usar el deck_id real (puede ser nuevo o existente)
-                            "created_at": datetime.now(timezone.utc),
-                            "updated_at": datetime.now(timezone.utc),
-                            "tags": card_data.tags if card_data.tags else []
-                        }
-                        
-                        if cloze_text_for_db:
-                            logger.info(f"Creando tarjeta CLOZE con cloze_text: {cloze_text_for_db}")
-                            db_card_payload["cloze_data"] = {"text": cloze_text_for_db} 
-                            db_card_payload["front_content"] = front_content_json 
-                            db_card_payload["back_content"] = back_content_json 
-                        else:
-                            logger.info("Creando tarjeta ESTÁNDAR")
-                            db_card_payload["front_content"] = front_content_json if front_content_json else [{"type": "text", "content": ""}]
-                            db_card_payload["back_content"] = back_content_json if back_content_json else [{"type": "text", "content": ""}]
-
-                        logger.info(f"Payload final para DB: {json.dumps(db_card_payload, indent=2, default=str)}")
-
-                        logger.info("Creando objeto db.Card...")
-                        new_db_card = db.Card(**db_card_payload)
-                        
-                        logger.info("Añadiendo a sesión...")
-                        session.add(new_db_card)
-                        
-                        logger.info("Haciendo flush para obtener ID...")
-                        session.flush()  # Cambiado de commit a flush
-                        
-                        logger.info(f"Tarjeta creada con ID temporal: {new_db_card.id}")
-                        cards_created_in_db.append(new_db_card)
-                        
-                    except Exception as e_card_creation:
-                        logger.error(f"ERROR procesando tarjeta {i+1}: {e_card_creation}", exc_info=True)
-                        # Acceder a los atributos directamente si existen, o usar un default
-                        front_preview = card_data.front_content if hasattr(card_data, 'front_content') and card_data.front_content else '{desconocido}'
-                        if isinstance(front_preview, list) and front_preview: # Si es lista de bloques, tomar el primero
-                            front_preview = front_preview[0].get('content', '{desconocido}')
-                        elif not isinstance(front_preview, str):
-                            front_preview = str(front_preview) # Convertir a string si no lo es
-
-                        generation_errors.append(f"Error al guardar tarjeta: {front_preview[:30]}... - {e_card_creation}")
-                        # Continuar con la siguiente tarjeta en lugar de hacer rollback completo
-                        session.rollback()
-                        continue
-                
-                # Commit final solo si hay tarjetas creadas
-                if cards_created_in_db:
-                    logger.info(f"Committing {len(cards_created_in_db)} tarjetas a la base de datos...")
-                    session.commit()
-                    logger.info("Commit exitoso!")
-                    
-                    # Refresh cards después del commit
-                    for card in cards_created_in_db:
-                        session.refresh(card)
-                        logger.info(f"Tarjeta {card.id} guardada exitosamente en DB")
-                else:
-                    logger.warning("No hay tarjetas para commitear, haciendo rollback...")
-                    session.rollback()
-            else:
-                logger.warning("Gemini no devolvió contenido de tarjetas.")
-                generation_warnings.append("Gemini no generó ninguna tarjeta para el tema proporcionado.")
-
-            if generated_card_contents_response.errors: # Ahora el modelo tiene este campo
-                generation_errors.extend(generated_card_contents_response.errors)
-        
-        if not cards_created_in_db and not generation_errors and not generation_warnings:
-            generation_warnings.append("No se crearon tarjetas, pero Gemini no reportó errores.")
-
-    except HTTPException as http_exc: # Re-lanzar HTTPExceptions
-        logger.error(f"HTTPException durante generación: {http_exc}", exc_info=True)
-        session.rollback()
-        raise http_exc
-    except Exception as e_main:
-        logger.error(f"Error mayor durante la generación de tarjetas con Gemini: {e_main}", exc_info=True)
-        session.rollback()
-        generation_errors.append(f"Error inesperado en el servidor: {e_main}")
-        # No devolvemos 500 directamente para que el cliente pueda ver los errores parciales si los hay
-
-    # 4. Devolver el resultado
-    success_status = len(cards_created_in_db) > 0 and not generation_errors
-    
-    # Convertir db.Card a m.CardRead para la respuesta
-    response_cards = [m.CardRead.model_validate(card) for card in cards_created_in_db]
-
-    return m.CardGenerationResult(
-        success=success_status,
-        cards_created=response_cards,
-        metadata={"topic": request_data.topic, "num_requested": request_data.num_cards, "num_created": len(response_cards)},
-        errors=generation_errors,
-        warnings=generation_warnings
+        success=True,
+        conflicts=conflicts  # Corregido: pasar la lista directamente
     ) 

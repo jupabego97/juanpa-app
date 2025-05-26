@@ -110,15 +110,11 @@ app.add_middleware(SecurityMiddleware)      # Seguridad básica
 app.add_middleware(RequestValidationMiddleware)  # Validación de requests
 app.add_middleware(LoggingMiddleware)       # Logging (más interno)
 
-origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://juanpa-app-mw2v.vercel.app",  # Dominio específico de Vercel
-]
+# Configuración CORS más permisiva para solucionar el problema
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"],  # Permitir todos los orígenes temporalmente
+    allow_credentials=False,  # Deshabilitar credentials para permitir *
     allow_methods=["*"],
     allow_headers=["*"],
 )

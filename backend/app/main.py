@@ -114,8 +114,7 @@ app.add_middleware(LoggingMiddleware)       # Logging (más interno)
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://*.vercel.app",  # Permitir todos los subdominios de Vercel
-    "https://vercel.app",
+    "*",  # Permitir todos los orígenes (temporal para desarrollo)
 ]
 app.add_middleware(
     CORSMiddleware,

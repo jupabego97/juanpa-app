@@ -113,7 +113,7 @@ app.add_middleware(LoggingMiddleware)       # Logging (más interno)
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "*",  # Permitir todos los orígenes (temporal para desarrollo)
+    "https://juanpa-app-mw2v.vercel.app",  # Dominio específico de Vercel
 ]
 app.add_middleware(
     CORSMiddleware,

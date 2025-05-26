@@ -14,8 +14,7 @@ import time
 
 # Importar FSRS con manejo de errores
 try:
-    from fsrs import Scheduler, Card as FSRSCard, Rating as FSRSRating, State
-    
+    from fsrs import Scheduler, Card as FSRSCard, Rating as FSRSRating, State 
     FSRS_AVAILABLE = True
     # --- DIAGNOSTIC PRINT FOR FSRS STATE ENUM ---
     print(f"DEBUG: FSRS State Enum Members available: {State.__members__}")
@@ -661,8 +660,7 @@ def sync_pull(
             created_at=card.created_at,
             updated_at=card.updated_at,
             is_deleted=card.is_deleted,  # Usar valor real de la base de datos
-            deleted_at=card.deleted_at,
-            raw_cloze_text=None  # Corregido: usar None en lugar de card.raw_cloze_text
+            deleted_at=card.deleted_at
         ))
     
     return m.PullResponse(
@@ -682,35 +680,49 @@ def sync_push(
     Recibe cambios del cliente y los aplica al servidor.
     """
     conflicts = []
+    created_decks = []
+    created_cards = []
     
-    # Procesar mazos
-    for deck_data in payload.decks:
-        try:
-            if deck_data.id and deck_data.id > 0:
-                # Actualizar mazo existente
-                existing_deck = session.get(db.Deck, deck_data.id)
-                if existing_deck:
-                    # Verificar conflictos de timestamp
-                    if existing_deck.updated_at > deck_data.updated_at:
-                        conflicts.append(m.ConflictInfo(
-                            type="deck",
-                            id=existing_deck.id or 1,  # Usar ID existente
-                            client_timestamp=deck_data.updated_at,
-                            server_timestamp=existing_deck.updated_at
-                        ))
-                        continue
-                    
-                    # Actualizar campos
-                    existing_deck.name = deck_data.name
-                    existing_deck.description = deck_data.description
-                    existing_deck.updated_at = deck_data.updated_at
-                    existing_deck.is_deleted = deck_data.is_deleted
-                    existing_deck.deleted_at = deck_data.deleted_at
-                    session.add(existing_deck)
+    # Procesar mazos si existen
+    if hasattr(payload, 'decks') and payload.decks:
+        for deck_data in payload.decks:
+            try:
+                if deck_data.id and deck_data.id > 0:
+                    # Actualizar mazo existente
+                    existing_deck = session.get(db.Deck, deck_data.id)
+                    if existing_deck:
+                        # Verificar conflictos de timestamp
+                        if existing_deck.updated_at > deck_data.updated_at:
+                            conflicts.append(m.ConflictInfo(
+                                type="deck",
+                                id=existing_deck.id or 1,
+                                message=f"Conflicto de timestamp en mazo {existing_deck.id}"
+                            ))
+                            continue
+                        
+                        # Actualizar campos
+                        existing_deck.name = deck_data.name
+                        existing_deck.description = deck_data.description
+                        existing_deck.updated_at = deck_data.updated_at
+                        existing_deck.is_deleted = deck_data.is_deleted
+                        existing_deck.deleted_at = deck_data.deleted_at
+                        session.add(existing_deck)
+                    else:
+                        # Crear nuevo mazo con ID específico (puede causar conflictos)
+                        new_deck = db.Deck(
+                            id=deck_data.id,
+                            name=deck_data.name,
+                            description=deck_data.description,
+                            created_at=deck_data.created_at,
+                            updated_at=deck_data.updated_at,
+                            is_deleted=deck_data.is_deleted,
+                            deleted_at=deck_data.deleted_at
+                        )
+                        session.add(new_deck)
+                        created_decks.append(deck_data)
                 else:
-                    # Crear nuevo mazo con ID específico (puede causar conflictos)
+                    # Crear nuevo mazo (sin ID específico)
                     new_deck = db.Deck(
-                        id=deck_data.id,
                         name=deck_data.name,
                         description=deck_data.description,
                         created_at=deck_data.created_at,
@@ -719,65 +731,74 @@ def sync_push(
                         deleted_at=deck_data.deleted_at
                     )
                     session.add(new_deck)
-            else:
-                # Crear nuevo mazo (sin ID específico)
-                new_deck = db.Deck(
-                    name=deck_data.name,
-                    description=deck_data.description,
-                    created_at=deck_data.created_at,
-                    updated_at=deck_data.updated_at,
-                    is_deleted=deck_data.is_deleted,
-                    deleted_at=deck_data.deleted_at
-                )
-                session.add(new_deck)
-        except Exception as e:
-            conflicts.append(m.ConflictInfo(
-                type="deck",
-                id=1,  # Placeholder para errores genéricos
-                client_timestamp=deck_data.updated_at,
-                server_timestamp=datetime.now(timezone.utc)
-            ))
+                    created_decks.append(deck_data)
+            except Exception as e:
+                conflicts.append(m.ConflictInfo(
+                    type="deck",
+                    id=1,
+                    message=f"Error procesando mazo: {str(e)}"
+                ))
     
-    # Procesar tarjetas
-    for card_data in payload.cards:
-        try:
-            if card_data.id and card_data.id > 0:
-                # Actualizar tarjeta existente
-                existing_card = session.get(db.Card, card_data.id)
-                if existing_card:
-                    # Verificar conflictos de timestamp
-                    if existing_card.updated_at > card_data.updated_at:
-                        conflicts.append(m.ConflictInfo(
-                            type="card",
-                            id=existing_card.id or 1,  # Usar ID existente
-                            client_timestamp=card_data.updated_at,
-                            server_timestamp=existing_card.updated_at
-                        ))
-                        continue
-                    
-                    # Actualizar campos
-                    existing_card.deck_id = card_data.deck_id
-                    existing_card.front_content = card_data.front_content
-                    existing_card.back_content = card_data.back_content
-                    existing_card.cloze_data = card_data.cloze_data
-                    existing_card.tags = card_data.tags
-                    existing_card.next_review_at = card_data.next_review_at
-                    existing_card.fsrs_stability = card_data.fsrs_stability
-                    existing_card.fsrs_difficulty = card_data.fsrs_difficulty
-                    existing_card.fsrs_lapses = card_data.fsrs_lapses
-                    existing_card.fsrs_state = card_data.fsrs_state
-                    existing_card.updated_at = card_data.updated_at
-                    existing_card.is_deleted = card_data.is_deleted
-                    existing_card.deleted_at = card_data.deleted_at
-                    session.add(existing_card)
+    # Procesar tarjetas si existen
+    if hasattr(payload, 'cards') and payload.cards:
+        for card_data in payload.cards:
+            try:
+                if card_data.id and card_data.id > 0:
+                    # Actualizar tarjeta existente
+                    existing_card = session.get(db.Card, card_data.id)
+                    if existing_card:
+                        # Verificar conflictos de timestamp
+                        if existing_card.updated_at > card_data.updated_at:
+                            conflicts.append(m.ConflictInfo(
+                                type="card",
+                                id=existing_card.id or 1,
+                                message=f"Conflicto de timestamp en tarjeta {existing_card.id}"
+                            ))
+                            continue
+                        
+                        # Actualizar campos
+                        existing_card.deck_id = card_data.deck_id
+                        existing_card.front_content = card_data.front_content
+                        existing_card.back_content = card_data.back_content
+                        existing_card.cloze_data = card_data.cloze_data
+                        existing_card.tags = card_data.tags
+                        existing_card.next_review_at = card_data.next_review_at
+                        existing_card.fsrs_stability = card_data.fsrs_stability
+                        existing_card.fsrs_difficulty = card_data.fsrs_difficulty
+                        existing_card.fsrs_lapses = card_data.fsrs_lapses
+                        existing_card.fsrs_state = card_data.fsrs_state
+                        existing_card.updated_at = card_data.updated_at
+                        existing_card.is_deleted = card_data.is_deleted
+                        existing_card.deleted_at = card_data.deleted_at
+                        session.add(existing_card)
+                    else:
+                        # Crear nueva tarjeta con ID específico
+                        new_card = db.Card(
+                            id=card_data.id,
+                            deck_id=card_data.deck_id,
+                            front_content=card_data.front_content,
+                            back_content=card_data.back_content,
+                            cloze_data=card_data.cloze_data,
+                            tags=card_data.tags,
+                            next_review_at=card_data.next_review_at,
+                            fsrs_stability=card_data.fsrs_stability,
+                            fsrs_difficulty=card_data.fsrs_difficulty,
+                            fsrs_lapses=card_data.fsrs_lapses,
+                            fsrs_state=card_data.fsrs_state,
+                            created_at=card_data.created_at,
+                            updated_at=card_data.updated_at,
+                            is_deleted=card_data.is_deleted,
+                            deleted_at=card_data.deleted_at
+                        )
+                        session.add(new_card)
+                        created_cards.append(card_data)
                 else:
-                    # Crear nueva tarjeta con ID específico
+                    # Crear nueva tarjeta (sin ID específico)
                     new_card = db.Card(
-                        id=card_data.id,
                         deck_id=card_data.deck_id,
                         front_content=card_data.front_content,
                         back_content=card_data.back_content,
-                        cloze_data=card_data.cloze_data,  # Corregido: usar cloze_data en lugar de raw_cloze_text
+                        cloze_data=card_data.cloze_data,
                         tags=card_data.tags,
                         next_review_at=card_data.next_review_at,
                         fsrs_stability=card_data.fsrs_stability,
@@ -790,37 +811,20 @@ def sync_push(
                         deleted_at=card_data.deleted_at
                     )
                     session.add(new_card)
-            else:
-                # Crear nueva tarjeta (sin ID específico)
-                new_card = db.Card(
-                    deck_id=card_data.deck_id,
-                    front_content=card_data.front_content,
-                    back_content=card_data.back_content,
-                    cloze_data=card_data.cloze_data,  # Corregido: usar cloze_data en lugar de raw_cloze_text
-                    tags=card_data.tags,
-                    next_review_at=card_data.next_review_at,
-                    fsrs_stability=card_data.fsrs_stability,
-                    fsrs_difficulty=card_data.fsrs_difficulty,
-                    fsrs_lapses=card_data.fsrs_lapses,
-                    fsrs_state=card_data.fsrs_state,
-                    created_at=card_data.created_at,
-                    updated_at=card_data.updated_at,
-                    is_deleted=card_data.is_deleted,
-                    deleted_at=card_data.deleted_at
-                )
-                session.add(new_card)
-        except Exception as e:
-            conflicts.append(m.ConflictInfo(
-                type="card",
-                id=1,  # Placeholder para errores genéricos
-                client_timestamp=card_data.updated_at,
-                server_timestamp=datetime.now(timezone.utc)
-            ))
+                    created_cards.append(card_data)
+            except Exception as e:
+                conflicts.append(m.ConflictInfo(
+                    type="card",
+                    id=1,
+                    message=f"Error procesando tarjeta: {str(e)}"
+                ))
     
     # Guardar cambios
     session.commit()
     
     return m.PushResponse(
-        success=True,
-        conflicts=conflicts  # Corregido: pasar la lista directamente
+        message="Sincronización completada",
+        created_decks=created_decks,
+        created_cards=created_cards,
+        conflicts=conflicts
     ) 

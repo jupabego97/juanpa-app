@@ -1,28 +1,29 @@
 {
-  "builds": [
-    {
-      "src": "package.json", 
-      "use": "@vercel/static-build",
-      "config": { 
-        "distDir": "dist" 
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "installCommand": "npm install",
+  "env": {
+    "VITE_API_URL": "https://tu-app-name.railway.app/api/v1",
+    "VITE_APP_TITLE": "JuanPA - Repetición Espaciada",
+    "VITE_APP_VERSION": "1.1.0",
+    "VITE_ENVIRONMENT": "production",
+    "VITE_DEV_CONSOLE_LOGS": "false"
+  },
   "headers": [
     {
-      "source": "/assets/(.*)",
+      "source": "/api/(.*)",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, immutable, max-age=31536000"
-        }
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
       ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://tu-app-name.railway.app/api/$1"
     }
   ]
 }

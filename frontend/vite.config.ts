@@ -6,6 +6,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    minify: 'esbuild', // ✅ CAMBIA AQUÍ: USA ESBUILD EN LUGAR DE TERSER
     rollupOptions: {
       output: {
         manualChunks: {
@@ -14,14 +15,6 @@ export default defineConfig({
           utils: ['axios', 'date-fns']
         }
       }
-    },
-    // Optimizaciones para Vercel
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true
-      }
     }
   },
   server: {
@@ -29,7 +22,7 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://localhost:8000', // Para desarrollo local
         changeOrigin: true,
         secure: false,
       }
@@ -39,7 +32,6 @@ export default defineConfig({
     port: 4173,
     host: true
   },
-  // Optimizaciones adicionales
   optimizeDeps: {
     include: ['react', 'react-dom', 'axios', 'react-router-dom']
   }

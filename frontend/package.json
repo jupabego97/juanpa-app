@@ -1,11 +1,11 @@
 {
     "name": "frontend",
-    "private": true,  // ✅ ASEGÚRATE DE QUE SEA true (booleano) Y NO "true" (string)
+    "private": true,
     "version": "0.0.0",
     "type": "module",
     "scripts": {
       "dev": "vite",
-      "build": "vite build", // Mantenlo simple para Vercel
+      "build": "vite build",
       "lint": "eslint .",
       "preview": "vite preview"
     },

@@ -1,0 +1,554 @@
+[2025-05-23 01:45:16] ERROR - juanpa.middleware.requests - api_request:219 - API POST /api/v1/gemini/generate-cards - 503 (0.010s)
+[2025-05-23 01:46:30] ERROR - juanpa.middleware.requests - api_request:219 - API POST /api/v1/gemini/generate-cards - 503 (0.006s)
+[2025-05-23 01:47:17] ERROR - juanpa.middleware.requests - api_request:219 - API POST /api/v1/gemini/generate-cards - 503 (0.006s)
+[2025-05-23 01:47:38] ERROR - juanpa.middleware.requests - api_request:219 - API POST /api/v1/gemini/generate-cards - 503 (0.006s)
+[2025-05-23 03:01:52] ERROR - juanpa.middleware.requests - api_request:219 - API POST /api/v1/gemini/generate-cards - 503 (0.008s)
+[2025-05-23 03:03:11] ERROR - juanpa.middleware.requests - api_request:219 - API POST /api/v1/gemini/generate-cards - 503 (0.008s)
+[2025-05-23 03:03:31] ERROR - juanpa.middleware.requests - api_request:219 - API POST /api/v1/gemini/generate-cards - 503 (0.006s)
+[2025-05-23 03:05:51] ERROR - juanpa.middleware.requests - api_request:219 - API POST /api/v1/gemini/generate-cards - 503 (0.012s)
+[2025-05-23 03:08:10] ERROR - juanpa.middleware.requests - api_request:219 - API POST /api/v1/gemini/generate-cards - 503 (0.008s)
+[2025-05-23 03:09:46] ERROR - juanpa.middleware.requests - api_request:219 - API POST /api/v1/gemini/generate-cards - 503 (0.011s)
+[2025-05-24 01:37:06] ERROR - juanpa.middleware.error - error:140 - Error no manejado: 'Card' object has no attribute 'raw_cloze_text'
+Traceback (most recent call last):
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 148, in call_next
+    message = await recv_stream.receive()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\anyio\streams\memory.py", line 126, in receive
+    raise EndOfStream from None
+anyio.EndOfStream
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Desktop\python\juanpa\backend\app\middleware.py", line 29, in dispatch
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 156, in call_next
+    raise app_exc
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 141, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 714, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 734, in app
+    await route.handle(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\fastapi\routing.py", line 301, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\fastapi\routing.py", line 214, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\concurrency.py", line 37, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\anyio\to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\app\main.py", line 427, in sync_pull
+    raw_cloze_text=card.raw_cloze_text,
+                   ^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\pydantic\main.py", line 989, in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+AttributeError: 'Card' object has no attribute 'raw_cloze_text'
+[2025-05-24 01:37:07] ERROR - juanpa.middleware.requests - api_request:219 - API GET /api/v1/sync/pull - 500 (0.322s)
+[2025-05-24 01:37:09] ERROR - juanpa.middleware.error - error:140 - Error no manejado: 'Card' object has no attribute 'raw_cloze_text'
+Traceback (most recent call last):
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 148, in call_next
+    message = await recv_stream.receive()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\anyio\streams\memory.py", line 126, in receive
+    raise EndOfStream from None
+anyio.EndOfStream
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Desktop\python\juanpa\backend\app\middleware.py", line 29, in dispatch
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 156, in call_next
+    raise app_exc
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 141, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 714, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 734, in app
+    await route.handle(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\fastapi\routing.py", line 301, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\fastapi\routing.py", line 214, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\concurrency.py", line 37, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\anyio\to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\app\main.py", line 427, in sync_pull
+    raw_cloze_text=card.raw_cloze_text,
+                   ^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\pydantic\main.py", line 989, in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+AttributeError: 'Card' object has no attribute 'raw_cloze_text'
+[2025-05-24 01:37:09] ERROR - juanpa.middleware.requests - api_request:219 - API GET /api/v1/sync/pull - 500 (0.044s)
+[2025-05-24 01:37:10] ERROR - juanpa.middleware.error - error:140 - Error no manejado: 'Card' object has no attribute 'raw_cloze_text'
+Traceback (most recent call last):
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 148, in call_next
+    message = await recv_stream.receive()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\anyio\streams\memory.py", line 126, in receive
+    raise EndOfStream from None
+anyio.EndOfStream
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Desktop\python\juanpa\backend\app\middleware.py", line 29, in dispatch
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 156, in call_next
+    raise app_exc
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 141, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 714, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 734, in app
+    await route.handle(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\fastapi\routing.py", line 301, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\fastapi\routing.py", line 214, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\concurrency.py", line 37, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\anyio\to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\app\main.py", line 427, in sync_pull
+    raw_cloze_text=card.raw_cloze_text,
+                   ^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\pydantic\main.py", line 989, in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+AttributeError: 'Card' object has no attribute 'raw_cloze_text'
+[2025-05-24 01:37:10] ERROR - juanpa.middleware.requests - api_request:219 - API GET /api/v1/sync/pull - 500 (0.042s)
+[2025-05-24 01:38:14] ERROR - juanpa.middleware.error - error:140 - Error no manejado: 'Card' object has no attribute 'raw_cloze_text'
+Traceback (most recent call last):
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 148, in call_next
+    message = await recv_stream.receive()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\anyio\streams\memory.py", line 126, in receive
+    raise EndOfStream from None
+anyio.EndOfStream
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Desktop\python\juanpa\backend\app\middleware.py", line 29, in dispatch
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 156, in call_next
+    raise app_exc
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 141, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 714, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 734, in app
+    await route.handle(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\fastapi\routing.py", line 301, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\fastapi\routing.py", line 214, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\concurrency.py", line 37, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\anyio\to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\app\main.py", line 427, in sync_pull
+    raw_cloze_text=card.raw_cloze_text,
+                   ^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\pydantic\main.py", line 989, in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+AttributeError: 'Card' object has no attribute 'raw_cloze_text'
+[2025-05-24 01:38:14] ERROR - juanpa.middleware.requests - api_request:219 - API GET /api/v1/sync/pull - 500 (0.045s)
+[2025-05-24 01:42:56] ERROR - juanpa.middleware.error - error:140 - Error no manejado: 'Card' object has no attribute 'raw_cloze_text'
+Traceback (most recent call last):
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 148, in call_next
+    message = await recv_stream.receive()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\anyio\streams\memory.py", line 126, in receive
+    raise EndOfStream from None
+anyio.EndOfStream
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Desktop\python\juanpa\backend\app\middleware.py", line 29, in dispatch
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 156, in call_next
+    raise app_exc
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\middleware\base.py", line 141, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\middleware\exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 714, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 734, in app
+    await route.handle(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\routing.py", line 73, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\fastapi\routing.py", line 301, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\fastapi\routing.py", line 214, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\starlette\concurrency.py", line 37, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\anyio\to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 2470, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 967, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\app\main.py", line 427, in sync_pull
+    raw_cloze_text=card.raw_cloze_text,
+                   ^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\pydantic\main.py", line 989, in __getattr__
+    raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+AttributeError: 'Card' object has no attribute 'raw_cloze_text'
+[2025-05-24 01:42:56] ERROR - juanpa.middleware.requests - api_request:219 - API GET /api/v1/sync/pull - 500 (0.040s)
+[2025-05-24 02:12:30] ERROR - juanpa.main - error:140 - Error mayor durante la generación de tarjetas con Gemini: 'GeminiCardGenerator' object has no attribute 'generate_cards_from_topic'
+Traceback (most recent call last):
+  File "D:\Desktop\python\juanpa\backend\app\main.py", line 627, in generate_cards_with_gemini
+    generated_card_contents = await gemini_generator.generate_cards_from_topic(
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'GeminiCardGenerator' object has no attribute 'generate_cards_from_topic'
+[2025-05-24 02:14:53] ERROR - app.gemini_service - generate_cards:233 - Error generando tarjetas con Gemini: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerMinute-FreeTier', 'quotaDimensions': {'model': 'gemini-2.0-pro-exp', 'location': 'global'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_requests_per_model_per_day', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel'}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-pro-exp'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-pro-exp'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerDay-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-pro-exp'}}]}, {'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '7s'}]}}
+[2025-05-24 02:14:53] ERROR - juanpa.main - error:140 - Error mayor durante la generación de tarjetas con Gemini: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerMinute-FreeTier', 'quotaDimensions': {'model': 'gemini-2.0-pro-exp', 'location': 'global'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_requests_per_model_per_day', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel'}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-pro-exp'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-pro-exp'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerDay-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-pro-exp'}}]}, {'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '7s'}]}}
+Traceback (most recent call last):
+  File "D:\Desktop\python\juanpa\backend\app\main.py", line 625, in generate_cards_with_gemini
+    generated_card_contents_response = await gemini_generator.generate_cards(request_data)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\app\gemini_service.py", line 145, in generate_cards
+    response = self.client.models.generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\google\genai\models.py", line 5019, in generate_content
+    response = self._generate_content(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\google\genai\models.py", line 3995, in _generate_content
+    response_dict = self._api_client.request(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\google\genai\_api_client.py", line 726, in request
+    response = self._request(http_request, stream=False)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\google\genai\_api_client.py", line 655, in _request
+    errors.APIError.raise_for_response(response)
+  File "D:\Desktop\python\juanpa\backend\venv\Lib\site-packages\google\genai\errors.py", line 101, in raise_for_response
+    raise ClientError(status_code, response_json, response)
+google.genai.errors.ClientError: 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerMinute-FreeTier', 'quotaDimensions': {'model': 'gemini-2.0-pro-exp', 'location': 'global'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_requests_per_model_per_day', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel'}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-pro-exp'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-pro-exp'}}, {'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_input_token_count', 'quotaId': 'GenerateContentInputTokensPerModelPerDay-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-pro-exp'}}]}, {'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '7s'}]}}
+[2025-05-24 13:12:57] ERROR - app.gemini_service - generate_cards:181 - Error parseando JSON de Gemini: Expecting ',' delimiter: line 7 column 44 (char 128)
+[2025-05-24 13:12:57] ERROR - app.gemini_service - generate_cards:182 - Texto generado: ```json
+[
+  {
+    "type": "standard",
+    "front_content": [
+      {
+        "type": "text",
+        "content": "¿Cómo se relaciona el "Principio de Falsabilidad" con el diseño de pruebas o experimentos efectivos?"
+      }
+    ],
+    "back_content": [
+      {
+        "type": "text",
+        "content": "El Principio de Falsabilidad, propuesto por Karl Popper, establece que una teoría científica debe ser susceptible de ser probada y potencialmente refutada. En el diseño de pruebas o experimentos, esto implica que una prueba debe ser capaz de producir un resultado que *desmienta* (falsifique) la hipótesis o teoría bajo evaluación, no solo confirmarla. Esto conduce a la creación de pruebas más rigurosas que desafían suposiciones, resultando en conclusiones más sólidas y significativas."
+      }
+    ],
+    "tags": ["Principios de Pruebas", "Falsabilidad", "Diseño de Experimentos", "Metodología Científica"],
+    "explanation": "Este principio es fundamental para asegurar que las pruebas no solo busquen confirmar, sino que también estén diseñadas para encontrar errores o limitaciones, lo que es clave para el progreso del conocimiento."
+  },
+  {
+    "type": "standard",
+    "front_content": [
+      {
+        "type": "text",
+        "content": "Diferencia entre "validez" y "fiabilidad" en el contexto de un instrumento de prueba o medición. Proporciona un ejemplo práctico donde una prueba podría ser fiable pero no válida."
+      }
+    ],
+    "back_content": [
+      {
+        "type": "text",
+        "content": "1.  **Fiabilidad (Reliability):** Se refiere a la consistencia de una medida. Una prueba fiable produce resultados consistentes bajo las mismas condiciones o en mediciones repetidas.\n2.  **Validez (Validity):** Se refiere a la precisión de una medida. Una prueba válida mide lo que se supone que debe medir.\n\n**Ejemplo práctico de fiabilidad sin validez:** Una báscula de baño podría mostrar consistentemente el mismo peso cada vez que una persona se sube a ella (lo que la hace fiable). Sin embargo, si ese peso es consistentemente incorrecto (por ejemplo, siempre 10 kg menos de lo real), entonces la báscula no es válida para medir el peso real de la persona."
+      }
+    ],
+    "tags": ["Validez", "Fiabilidad", "Conceptos de Medición", "Estadística", "Ejemplo Práctico"],
+    "explanation": "Es crucial entender que la fiabilidad es una condición necesaria pero no suficiente para la validez. Una prueba debe ser consistente para ser precisa, pero ser consistente no garantiza que sea precisa en lo que realmente intenta medir."
+  }
+]
+```
+[2025-05-24 13:12:57] ERROR - app.gemini_service - generate_cards:233 - Error generando tarjetas con Gemini: Error parseando respuesta de Gemini: Expecting ',' delimiter: line 7 column 44 (char 128)
+[2025-05-24 13:12:57] ERROR - juanpa.main - error:140 - Error inesperado generando tarjetas: Error parseando respuesta de Gemini: Expecting ',' delimiter: line 7 column 44 (char 128)
+[2025-05-24 13:12:57] ERROR - juanpa.main - error:140 - Tiempo transcurrido antes del error: 10.94s
+[2025-05-24 13:19:20] ERROR - juanpa.main - error:140 - Error creando tarjeta 9: La etiqueta 'CI/CD' contiene caracteres no permitidos
+[2025-05-24 13:31:13] ERROR - app.gemini_service - generate_cards:181 - Error parseando JSON de Gemini: Expecting ',' delimiter: line 41 column 201 (char 2156)
+[2025-05-24 13:31:13] ERROR - app.gemini_service - generate_cards:182 - Texto generado: ```json
+[
+  {
+    "type": "standard",
+    "front_content": [
+      {
+        "type": "text",
+        "content": "¿Cuál es la principal característica que distingue a TypeScript de JavaScript y qué beneficio fundamental aporta?"
+      }
+    ],
+    "back_content": [
+      {
+        "type": "text",
+        "content": "La principal característica es su **sistema de tipos estático opcional**. Este sistema permite la detección de errores relacionados con tipos en tiempo de desarrollo (antes de la ejecución), lo que resulta en un código más robusto, menos propenso a errores en producción, y facilita una mejor autocompletación y refactorización en IDEs."
+      }
+    ],
+    "tags": ["TypeScript", "JavaScript", "TipadoEstático", "Diferencias", "Beneficios"]
+  },
+  {
+    "type": "cloze",
+    "cloze_text": "En TypeScript, para especificar explícitamente el tipo de una variable o parámetro de función, se utiliza la {{c1::anotación de tipo}}, que se indica con un {{c2::dos puntos (:)}} seguido del nombre del tipo (ej: `let nombre: string;`).",
+    "tags": ["TypeScript", "Tipos", "Sintaxis", "AnotaciónDeTipo"]
+  },
+  {
+    "type": "standard",
+    "front_content": [
+      {
+        "type": "text",
+        "content": "¿Para qué se utilizan las `interfaces` en TypeScript y cómo contribuyen a la robustez y mantenibilidad del código?"
+      }
+    ],
+    "back_content": [
+      {
+        "type": "text",
+        "content": "Las `interfaces` se utilizan para **definir la \"forma\" de los objetos**, especificando las propiedades esperadas y sus tipos, o para describir la estructura de una función. Contribuyen a la robustez al asegurar que los objetos y funciones cumplan con un contrato predefinido, facilitando la validación en tiempo de compilación, mejorando la consistencia del código y haciendo más legible la intención de los datos."
+      }
+    ],
+    "tags": ["TypeScript", "Interfaces", "Tipado", "Estructura", "Diseño"]
+  },
+  {
+    "type": "cloze",
+    "cloze_text": "Los {{c1::Enums}} (enumeraciones) en TypeScript permiten definir un conjunto de {{c2::constantes con nombre}}, lo que mejora la legibilidad y seguridad al evitar el uso de valores "mágicos" (strings o números arbitrarios) en el código, especialmente cuando se trabaja con estados o categorías fijas.",
+    "tags": ["TypeScript", "Enums", "Tipos", "Constantes", "Legibilidad"]
+  },
+  {
+    "type": "standard",
+    "front_content": [
+      {
+        "type": "text",
+        "content": "Explica el concepto de \"inferencia de tipos\" en TypeScript y proporciona un pequeño ejemplo que demuestre su funcionamiento."
+      }
+    ],
+    "back_content": [
+      {
+        "type": "text",
+        "content": "La **inferencia de tipos** es la capacidad de TypeScript para deducir automáticamente el tipo de una variable, parámetro de función o valor de retorno sin que el desarrollador lo declare explícitamente. Esto reduce la verbosidad sin sacrificar la seguridad de tipos.\n\n**Ejemplo:**\n`let mensaje = \"Hola mundo\";`\nAquí, TypeScript infiere que `mensaje` es de tipo `string`."
+      }
+    ],
+    "tags": ["TypeScript", "InferenciaDeTipos", "Tipado", "Automático", "Ejemplo"]
+  },
+  {
+    "type": "standard",
+    "front_content": [
+      {
+        "type": "text",
+        "content": "¿Cuál es la diferencia fundamental entre los \"tipos de unión\" (`|`) y los \"tipos de intersección\" (`&`) en TypeScript?"
+      }
+    ],
+    "back_content": [
+      {
+        "type": "text",
+        "content": "Los **tipos de unión** (`A | B`) indican que una variable puede ser de tipo `A` **O** de tipo `B`. El valor puede ser de cualquiera de los tipos listados.\n\nLos **tipos de intersección** (`A & B`) indican que una variable debe ser de tipo `A` **Y** de tipo `B` simultáneamente. El valor debe cumplir con todas las propiedades y métodos de ambos tipos combinados."
+      }
+    ],
+    "tags": ["TypeScript", "TiposDeUnión", "TiposDeIntersección", "TipadoAvanzado", "Diferencias"]
+  },
+  {
+    "type": "cloze",
+    "cloze_text": "El tipo de utilidad {{c1::`Partial<T>`}} en TypeScript crea un nuevo tipo a partir de `T` donde todas sus propiedades son {{c2::opcionales}}. Es útil para construir objetos parcialmente, para actualizar objetos existentes o para argumentos de funciones que solo requieren algunas propiedades de un objeto más grande.",
+    "tags": ["TypeScript", "UtilityTypes", "TipadoAvanzado", "Partial", "ManipulaciónDeTipos"]
+  },
+  {
+    "type": "standard",
+    "front_content": [
+      {
+        "type": "text",
+        "content": "¿Qué problema fundamental resuelven los \"genéricos\" en TypeScript y cuándo son especialmente útiles en el desarrollo de aplicaciones?"
+      }
+    ],
+    "back_content": [
+      {
+        "type": "text",
+        "content": "Los **genéricos** resuelven el problema de tener que duplicar código para operar con diferentes tipos de datos, o de perder la seguridad de tipos al usar `any`. Permiten escribir componentes (funciones, clases, interfaces) que funcionan con **cualquier tipo de datos**, manteniendo la información de tipo.\n\nSon especialmente útiles en:\n*   **Colecciones de datos** (ej: `Array<T>`, funciones que manipulan listas).\n*   **Funciones que operan en tipos abstractos** (ej: una función `identidad` que devuelve el mismo tipo que recibe).\n*   **Componentes de UI reusables** que necesitan manejar datos de diferentes tipos."
+      }
+    ],
+    "tags": ["TypeScript", "Genéricos", "Tipado", "Reusabilidad", "Aplicaciones"]
+  },
+  {
+    "type": "standard",
+    "front_content": [
+      {
+        "type": "text",
+        "content": "Describe brevemente el proceso de compilación de un archivo TypeScript (`.ts`) a JavaScript (`.js`) y explica por qué este paso es necesario para la ejecución del código."
+      }
+    ],
+    "back_content": [
+      {
+        "type": "text",
+        "content": "El proceso de compilación de TypeScript se realiza utilizando el compilador de TypeScript (`tsc`). Este toma los archivos `.ts` y los **transpila** a archivos `.js` equivalentes. Es necesario porque los entornos de ejecución (como navegadores web y Node.js) solo entienden JavaScript nativo. La compilación elimina todas las características de TypeScript (como el tipado estático, interfaces, enums) que no son parte de JavaScript estándar, y convierte el código a una versión ejecutable que el motor de JavaScript puede interpretar."
+      }
+    ],
+    "tags": ["TypeScript", "Compilación", "Transpilación", "tsc", "ProcesoDeDesarrollo"]
+  },
+  {
+    "type": "standard",
+    "front_content": [
+      {
+        "type": "text",
+        "content": "¿Qué son los \"decoradores\" en TypeScript y para qué propósito general se utilizan en frameworks o librerías?"
+      }
+    ],
+    "back_content": [
+      {
+        "type": "text",
+        "content": "Los **decoradores** son una característica experimental de TypeScript que permiten adjuntar metadatos o **modificar el comportamiento de clases, propiedades, métodos o parámetros** en tiempo de diseño (antes de la ejecución). Se declaran con un símbolo `@` seguido del nombre del decorador.\n\nSe utilizan comúnmente en frameworks como Angular, NestJS o TypeORM para añadir funcionalidades o configuraciones de forma declarativa, como inyección de dependencias, definición de rutas, validación o logging, sin tener que modificar directamente el código de la clase o método."
+      }
+    ],
+    "tags": ["TypeScript", "Decoradores", "CaracterísticasExperimentales", "Metaprogramación", "Frameworks"]
+  }
+]
+```
+[2025-05-24 13:31:13] ERROR - app.gemini_service - generate_cards:233 - Error generando tarjetas con Gemini: Error parseando respuesta de Gemini: Expecting ',' delimiter: line 41 column 201 (char 2156)
+[2025-05-24 13:31:13] ERROR - juanpa.main - error:140 - Error inesperado generando tarjetas: Error parseando respuesta de Gemini: Expecting ',' delimiter: line 41 column 201 (char 2156)
+[2025-05-24 13:31:13] ERROR - juanpa.main - error:140 - Tiempo transcurrido antes del error: 17.78s
+[2025-05-24 13:40:35] ERROR - juanpa.main - error:140 - Error creando tarjeta 8: La etiqueta 'I/O' contiene caracteres no permitidos
+[2025-05-26 01:42:11] ERROR - juanpa.main - error:140 - Error inesperado generando tarjetas: Missing key inputs argument! To use the Google AI API, provide (`api_key`) arguments. To use the Google Cloud API, provide (`vertexai`, `project` & `location`) arguments.
+[2025-05-26 01:42:11] ERROR - juanpa.main - error:140 - Tiempo transcurrido antes del error: 0.05s
+[2025-05-26 01:47:54] ERROR - juanpa.main - error:140 - Error inesperado generando tarjetas: module 'google.genai' has no attribute 'configure'
+[2025-05-26 01:47:54] ERROR - juanpa.main - error:140 - Tiempo transcurrido antes del error: 0.06s
+[2025-05-26 13:47:27] ERROR - juanpa.middleware.requests - api_request:219 - API POST /api/v1/gemini/generate-cards - 503 (0.063s)
+[2025-05-26 13:50:01] ERROR - juanpa.middleware.requests - api_request:219 - API POST /api/v1/gemini/generate-cards - 503 (0.085s)
+[2025-05-26 13:56:05] ERROR - juanpa.middleware.requests - api_request:219 - API POST /api/v1/gemini/generate-cards - 503 (0.020s)
+[2025-05-26 13:56:09] ERROR - juanpa.middleware.requests - api_request:219 - API POST /api/v1/gemini/generate-cards - 503 (0.046s)
+[2025-05-26 13:56:36] ERROR - juanpa.middleware.requests - api_request:219 - API POST /api/v1/gemini/generate-cards - 503 (0.012s)
+[2025-05-26 13:56:37] ERROR - juanpa.middleware.requests - api_request:219 - API POST /api/v1/gemini/generate-cards - 503 (0.030s)
+[2025-05-26 13:56:38] ERROR - juanpa.middleware.requests - api_request:219 - API POST /api/v1/gemini/generate-cards - 503 (0.014s)

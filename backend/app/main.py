@@ -64,7 +64,7 @@ from contextlib import asynccontextmanager
 from .database import engine, create_db_and_tables
 from . import db_models as db
 from . import models as m
-# from .config import settings
+# from .config import settings  # Comentado para evitar conflictos con CORS
 
 # Importar sistemas de seguridad y logging
 from .logging_config import get_logger, setup_logging
@@ -111,20 +111,62 @@ app.add_middleware(SecurityMiddleware)      # Seguridad básica
 app.add_middleware(RequestValidationMiddleware)  # Validación de requests
 app.add_middleware(LoggingMiddleware)       # Logging (más interno)
 
-# Configurar CORS con variables de entorno
-cors_origins = os.getenv("JUANPA_CORS_ORIGINS", '["http://localhost:5173","http://127.0.0.1:5173"]')
-try:
-    import json
-    origins = json.loads(cors_origins)
-except json.JSONDecodeError:
-    origins = ["http://localhost:5173", "http://127.0.0.1:5173"]
+# Configurar CORS de manera robusta para Railway y desarrollo
+def setup_cors():
+    """Configurar CORS basado en el entorno y variables de entorno"""
+    # Orígenes por defecto para desarrollo
+    default_origins = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+    ]
+    
+    # Obtener orígenes de variable de entorno
+    cors_origins_env = os.getenv("JUANPA_CORS_ORIGINS")
+    
+    # Si es producción y hay orígenes configurados
+    if cors_origins_env:
+        try:
+            import json
+            # Intentar parsear como JSON
+            configured_origins = json.loads(cors_origins_env)
+            logger.info(f"CORS: Orígenes configurados desde env: {configured_origins}")
+            return configured_origins
+        except json.JSONDecodeError:
+            # Si no es JSON válido, dividir por comas
+            configured_origins = [origin.strip() for origin in cors_origins_env.split(",")]
+            logger.info(f"CORS: Orígenes configurados (separados por coma): {configured_origins}")
+            return configured_origins
+    
+    # En desarrollo o si no hay configuración específica
+    environment = os.getenv("JUANPA_ENVIRONMENT", "development")
+    if environment == "development":
+        logger.info(f"CORS: Usando orígenes de desarrollo: {default_origins}")
+        return default_origins
+    else:
+        # En producción sin configuración específica, solo permitir HTTPS
+        logger.warning("CORS: Producción sin orígenes específicos - configurar JUANPA_CORS_ORIGINS")
+        return ["https://*"]  # Permitir cualquier HTTPS en producción como fallback
+
+# Configurar CORS
+allowed_origins = setup_cors()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=[
+        "Accept",
+        "Accept-Language",
+        "Content-Language",
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "X-CSRFToken",
+        "X-API-Key"
+    ],
 )
 
 def get_session():

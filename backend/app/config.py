@@ -76,6 +76,7 @@ class Settings(BaseSettings):
     
     # APIs externas
     google_api_key: Optional[str] = Field(None, description="Clave API de Google")
+    gemini_api_key: Optional[str] = Field(None, description="Clave API de Gemini")
     openai_api_key: Optional[str] = Field(None, description="Clave API de OpenAI")
     
     @validator('environment')
@@ -134,11 +135,10 @@ class Settings(BaseSettings):
         """Obtiene la ruta absoluta del directorio de uploads."""
         return Path(self.uploads_dir).resolve()
     
-    model_config = {
-        "env_prefix": "JUANPA_",
-        "env_file": ".env",
-        "env_file_encoding": "utf-8"
-    }
+    class Config:
+        env_prefix = "JUANPA_"
+        env_file = ".env"
+        env_file_encoding = "utf-8"
 
 
 class DevelopmentSettings(Settings):

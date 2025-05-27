@@ -1,29 +1,28 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "framework": "vite",
-  "installCommand": "npm install",
-  "env": {
-    "VITE_API_URL": "https://mi-backend-fastapi-production.up.railway.app/api/v1",
-    "VITE_APP_TITLE": "JuanPA - Repetición Espaciada",
-    "VITE_APP_VERSION": "1.1.0",
-    "VITE_ENVIRONMENT": "production",
-    "VITE_DEV_CONSOLE_LOGS": "false"
-  },
-  "headers": [
+  "builds": [
     {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
-      ]
+      "src": "package.json", 
+      "use": "@vercel/static-build",
+      "config": { 
+        "distDir": "dist" 
+      }
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://mi-backend-fastapi-production.up.railway.app/api/$1"
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, immutable, max-age=31536000"
+        }
+      ]
     }
   ]
 }

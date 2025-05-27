@@ -44,13 +44,27 @@ class GeminiCardGenerator:
         Inicializar el generador de Gemini.
         
         Args:
-            api_key: API key de Google. Si no se proporciona, se buscará en variables de entorno.
+            api_key: API key de Google. Si no se proporciona, se intentará usar la hardcodeada o variables de entorno.
         """
-        # Obtener API key de variables de entorno o parámetro
-        self.api_key = api_key or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        # Opción 1: API key hardcodeada (para desarrollo/testing)
+        hardcoded_api_key = "AIzaSyDS8DZT0UIKjn-A25m22nBS0gWicFDeyNs"
+        
+        # Opción 2: Variables de entorno como fallback
+        env_api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        
+        # Prioridad: parámetro > hardcodeada > variables de entorno
+        self.api_key = api_key or hardcoded_api_key or env_api_key
         
         if not self.api_key:
             raise ValueError("API key de Google/Gemini no configurada. Configura GOOGLE_API_KEY o GEMINI_API_KEY en las variables de entorno.")
+        
+        # Log para debugging (sin mostrar la key completa por seguridad)
+        if self.api_key == hardcoded_api_key:
+            logger.info("Usando API key hardcodeada para Gemini")
+        elif self.api_key == env_api_key:
+            logger.info("Usando API key desde variables de entorno para Gemini")
+        else:
+            logger.info("Usando API key proporcionada como parámetro para Gemini")
         
         self.client = genai.Client(api_key=self.api_key)
         self.model_name = "gemini-2.5-flash-preview-05-20"
@@ -402,7 +416,14 @@ def get_gemini_generator() -> GeminiCardGenerator:
 def is_gemini_available() -> bool:
     """Verificar si Gemini está disponible."""
     try:
-        api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        # Opción 1: API key hardcodeada
+        hardcoded_api_key = "AIzaSyDS8DZT0UIKjn-A25m22nBS0gWicFDeyNs"
+        
+        # Opción 2: Variables de entorno
+        env_api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
+        
+        # Verificar si alguna está disponible
+        api_key = hardcoded_api_key or env_api_key
         return api_key is not None and len(api_key.strip()) > 0
     except:
         return False 

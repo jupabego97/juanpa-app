@@ -90,7 +90,7 @@ class CardCreate(CardBase):
             if not has_raw_cloze and not (has_front_content and has_back_content):
                 raise ValueError('Se debe proporcionar "raw_cloze_text" o ambos "front_content" y "back_content".')
         return data
-
+    
     @validator('raw_cloze_text')
     def validate_raw_cloze_text(cls, v):
         if v is not None:

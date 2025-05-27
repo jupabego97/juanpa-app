@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv
+.env
+*.egg-info/
+dist/
+build/
+
+# Base de datos de desarrollo
+*.db
+juanpa_app.db
+test_*.db
+
+# Logs
+logs/
+*.log
+
+# Tests
+tests/
+test_*.py
+*_test.py
+pytest.ini
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Scripts de desarrollo
+windows_server.py
+simple_app.py
+start_*.bat
+debug_*.py
+investigate_*.py
+test_*.py
+
+# Alembic (si no usas migraciones en producción)
+alembic.ini
+
+# Archivos temporales
+.DS_Store
+Thumbs.db 

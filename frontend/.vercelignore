@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Development files
+.env.local
+.env.development.local
+.env.test.local
+
+# Build files (Vercel builds automatically)
+dist/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Cache
+.cache/
+
+# Development scripts
+start-dev.ps1

@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
   build: {
@@ -15,13 +14,20 @@ export default defineConfig({
           utils: ['axios', 'date-fns']
         }
       }
+    },
+    // Optimizaciones para Vercel
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
     }
   },
   server: {
     port: 5173,
     host: true,
     proxy: {
-      // Proxy para la API durante desarrollo
       '/api': {
         target: 'http://localhost:8000',
         changeOrigin: true,
@@ -32,5 +38,9 @@ export default defineConfig({
   preview: {
     port: 4173,
     host: true
+  },
+  // Optimizaciones adicionales
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'axios', 'react-router-dom']
   }
 })

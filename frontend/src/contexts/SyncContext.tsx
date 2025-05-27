@@ -271,300 +271,225 @@ export const SyncProvider: React.FC<SyncProviderProps> = ({ children }) => {
 
   const initiateSync = useCallback(async () => {
     if (isSyncing) {
-      console.log("SyncContext: Sincronización ya en progreso.");
+      console.log("SyncContext: Sync ya en progreso.");
       return;
     }
+    console.log("SyncContext: Iniciando ciclo de sincronización...");
     setIsSyncing(true);
     setSyncError(null);
-    console.log("SyncContext: Iniciando sincronización. Último timestamp:", lastSyncTimestamp);
 
-    let pullData: PullResponse | null = null;
-    try {
-      // 1. PULL CHANGES FROM SERVER
-      console.log("SyncContext: Realizando PULL...");
-      pullData = await syncPull(lastSyncTimestamp || undefined); // Enviar undefined si es null
-      console.log("SyncContext: PULL completado. Datos recibidos:", pullData);
+    // --- PUSH ---
+    // Recolectar cambios locales para enviar al servidor
+    const newDecksToPush: DeckCreatePayload[] = decks
+      .filter(d => d._isNew && !d.is_deleted) // No enviar nuevos que fueron eliminados antes del primer sync
+      .map(d => ({ name: d.name, description: d.description }));
 
-      // 2. PREPARE LOCAL DATA & MERGE PULL DATA (Reconciliation)
-      // Esta es la parte compleja. Estrategia:
-      // - Los datos del servidor (pullData) son la "verdad" para los elementos existentes.
-      // - Los elementos nuevos (_isNew) localmente se intentarán enviar.
-      // - Los elementos modificados (_isDirty) localmente se intentarán enviar.
-      // - Los elementos eliminados (is_deleted y _isDirty) localmente se intentarán enviar como eliminaciones.
+    const newCardsToPush: CardCreatePayload[] = cards
+      .filter(c => c._isNew && !c.is_deleted)
+      .map(c => ({
+        deck_id: c.deck_id, // Esto podría ser un _tempId de mazo, el backend necesitará manejarlo o resolvemos antes
+        front_content: c.front_content as ContentBlock[] | null | undefined, // Asegurar tipo
+        back_content: c.back_content as ContentBlock[] | null | undefined,  // Asegurar tipo
+        raw_cloze_text: c.raw_cloze_text,
+        cloze_data: c.cloze_data,
+        tags: c.tags,
+        // El backend asignará fsrs_state, next_review_at, etc. para tarjetas nuevas
+      }));
 
-      let reconciledDecks: LocalDeck[] = [];
-      let reconciledCards: LocalCard[] = [];
+    const updatedDecksToPush: ApiDeck[] = decks
+      .filter(d => d._isDirty && !d._isNew) // Solo actualizados que ya existen en servidor
+      .map(d => ({
+        id: d.id,
+        name: d.name,
+        description: d.description,
+        created_at: d.created_at, // Estos no se deberían modificar realmente
+        updated_at: d.updated_at, // El backend debería actualizar esto
+        is_deleted: d.is_deleted,
+        deleted_at: d.deleted_at,
+      }));
 
-      // Merge Decks
-      const serverDecksMap = new Map(pullData.decks.map(d => [d.id, d]));
-      const localDecksCopy = [...decks]; // Copia para trabajar
+    const updatedCardsToPush: ApiCard[] = cards
+      .filter(c => c._isDirty && !c._isNew)
+      .map(c => ({
+        id: c.id,
+        deck_id: c.deck_id,
+        front_content: c.front_content as ContentBlock[] | null | undefined,
+        back_content: c.back_content as ContentBlock[] | null | undefined,
+        raw_cloze_text: c.raw_cloze_text,
+        cloze_data: c.cloze_data,
+        tags: c.tags,
+        next_review_at: c.next_review_at,
+        fsrs_stability: c.fsrs_stability,
+        fsrs_difficulty: c.fsrs_difficulty,
+        fsrs_lapses: c.fsrs_lapses,
+        fsrs_state: c.fsrs_state,
+        created_at: c.created_at,
+        updated_at: c.updated_at, // El backend debería actualizar esto
+        is_deleted: c.is_deleted,
+        deleted_at: c.deleted_at,
+      }));
+    
+    let pushSuccessful = true;
+    let pushResponseData: PushResponse | null = null;
 
-      localDecksCopy.forEach(localDeck => {
-        if (localDeck.id !== 0 && serverDecksMap.has(localDeck.id)) { // Existe en servidor
-          const serverDeck = serverDecksMap.get(localDeck.id)!;
-          if (new Date(serverDeck.updated_at) > new Date(localDeck.updated_at) && !localDeck._isDirty && !localDeck._isNew) {
-            // Versión del servidor es más nueva y no hay cambios locales pendientes para este mazo
-            reconciledDecks.push({ ...serverDeck, _isDirty: false, _isNew: false });
-          } else if (localDeck._isDirty || localDeck.is_deleted) {
-            // Hay cambios locales (modificación o eliminación), mantener el local para el push
-            reconciledDecks.push(localDeck);
-          } else {
-            // No hay cambios locales y el local es igual o más nuevo (esto no debería pasar si _isDirty se maneja bien)
-            // O el servidor no lo tiene (marcado como eliminado en el servidor)
-             if (!serverDeck.is_deleted) { // Si el servidor no lo tiene como eliminado
-                reconciledDecks.push({ ...localDeck, _isDirty: false, _isNew: false }); // Mantener local, resetear flags
-             } else {
-                // El servidor lo tiene como eliminado, y no tenemos cambios locales. Se elimina localmente.
-             }
-          }
-          serverDecksMap.delete(localDeck.id); // Eliminar del mapa para procesar los restantes del servidor
-        } else if (localDeck._isNew) { // Nuevo localmente
-          reconciledDecks.push(localDeck);
-        } else if (localDeck.id !== 0 && !serverDecksMap.has(localDeck.id) && !localDeck.is_deleted) {
-           // Existe localmente con ID de servidor, pero no vino en el pull Y NO está marcado como eliminado localmente.
-           // Esto podría significar que fue eliminado en otro cliente y el servidor ya no lo envía.
-           // O si el pull fue incremental y no se incluyó por no haber cambios.
-           // Por ahora, si no está en el pull y no está _isDirty/_isNew, lo descartamos.
-           // Si queremos una papelera o algo más robusto, esto necesita cambiar.
-           console.log(`SyncContext: Mazo local con ID ${localDeck.id} no encontrado en pull, se asume eliminado en servidor o no modificado.`);
-        } else if (localDeck.is_deleted && localDeck.id !==0 && localDeck._isDirty){ // Marcado para eliminar y tiene ID
-            reconciledDecks.push(localDeck); // Mantener para el push de eliminación
-        }
-      });
-      // Añadir mazos restantes del servidor (nuevos para este cliente)
-      serverDecksMap.forEach(serverDeck => {
-        if (!serverDeck.is_deleted) { // Solo añadir si no está marcado como eliminado
-          reconciledDecks.push({ ...serverDeck, _isDirty: false, _isNew: false });
-        }
-      });
+    if (newDecksToPush.length > 0 || newCardsToPush.length > 0 || updatedDecksToPush.length > 0 || updatedCardsToPush.length > 0) {
+      console.log("SyncContext: [Push] Cambios locales detectados. Enviando al servidor...");
+      console.log("SyncContext: [Push] Nuevos Mazos:", newDecksToPush.length);
+      console.log("SyncContext: [Push] Nuevas Tarjetas:", newCardsToPush.length);
+      console.log("SyncContext: [Push] Mazos Actualizados:", updatedDecksToPush.length);
+      console.log("SyncContext: [Push] Tarjetas Actualizadas:", updatedCardsToPush.length);
       
-      // Merge Cards (lógica similar a los mazos)
-      const serverCardsMap = new Map(pullData.cards.map(c => [c.id, c]));
-      const localCardsCopy = [...cards];
-
-      localCardsCopy.forEach(localCard => {
-        if (localCard.id !== 0 && serverCardsMap.has(localCard.id)) {
-          const serverCard = serverCardsMap.get(localCard.id)!;
-          if (new Date(serverCard.updated_at) > new Date(localCard.updated_at) && !localCard._isDirty && !localCard._isNew) {
-            reconciledCards.push({ ...serverCard, _isDirty: false, _isNew: false });
-          } else if (localCard._isDirty || localCard.is_deleted) {
-            reconciledCards.push(localCard);
-          } else {
-             if(!serverCard.is_deleted){
-                reconciledCards.push({ ...localCard, _isDirty: false, _isNew: false });
-             }
-          }
-          serverCardsMap.delete(localCard.id);
-        } else if (localCard._isNew) {
-          reconciledCards.push(localCard);
-        } else if (localCard.id !== 0 && !serverCardsMap.has(localCard.id) && !localCard.is_deleted) {
-           console.log(`SyncContext: Tarjeta local con ID ${localCard.id} no encontrada en pull, se asume eliminada en servidor o no modificada.`);
-        } else if (localCard.is_deleted && localCard.id !==0 && localCard._isDirty){
-            reconciledCards.push(localCard);
-        }
-      });
-      serverCardsMap.forEach(serverCard => {
-        if (!serverCard.is_deleted) {
-          reconciledCards.push({ ...serverCard, _isDirty: false, _isNew: false });
-        }
-      });
-
-      setDecks(reconciledDecks);
-      setCards(reconciledCards);
-      
-      const newLastSyncTimestamp = pullData.server_timestamp;
-
-      // 3. PREPARE PUSH PAYLOAD
-      const decksToCreate: DeckCreatePayload[] = reconciledDecks
-        .filter(d => d._isNew && !d.is_deleted)
-        .map(d => ({ name: d.name, description: d.description }));
-
-      const cardsToCreate: CardCreatePayload[] = reconciledCards
-        .filter(c => c._isNew && !c.is_deleted && typeof c.deck_id === 'number' && c.deck_id !== 0) 
-        .map(c => {
-          let frontContentForPayload: ContentBlock[] | null | undefined = undefined;
-          if (Array.isArray(c.front_content)) {
-            frontContentForPayload = c.front_content;
-          } else if (typeof c.front_content === 'string') {
-            frontContentForPayload = [{ type: 'html', content: c.front_content }];
-          } else {
-            frontContentForPayload = c.front_content; // Asignar null o undefined directamente
-          }
-
-          let backContentForPayload: ContentBlock[] | null | undefined = undefined;
-          if (Array.isArray(c.back_content)) {
-            backContentForPayload = c.back_content;
-          } else if (typeof c.back_content === 'string') {
-            backContentForPayload = [{ type: 'html', content: c.back_content }];
-          } else {
-            backContentForPayload = c.back_content; // Asignar null o undefined directamente
-          }
-          
-          return {
-            deck_id: c.deck_id as number, 
-            front_content: frontContentForPayload,
-            back_content: backContentForPayload,
-            raw_cloze_text: c.raw_cloze_text,
-            cloze_data: c.cloze_data,
-            tags: c.tags,
-          };
-        });
-      
-      // Para updated_decks y updated_cards, enviamos el objeto completo como lo espera el backend (ApiDeck/ApiCard)
-      const decksToUpdate: ApiDeck[] = reconciledDecks
-        .filter(d => d.id !== 0 && (d._isDirty || d.is_deleted)) // Dirty O marcado para eliminar (con ID de servidor)
-        .map(({ _tempId, _isNew, _isDirty, ...apiDeck }) => apiDeck); // Quitar campos locales
-
-      const cardsToUpdate: ApiCard[] = reconciledCards
-        .filter(c => c.id !== 0 && (c._isDirty || c.is_deleted))
-        .map(({ _tempId, _isNew, _isDirty, ...apiCard }) => apiCard);
-
       const pushPayload: PushRequest = {
-        client_timestamp: newLastSyncTimestamp, // Usar el timestamp del pull que acabamos de recibir
-        new_decks: decksToCreate.length > 0 ? decksToCreate : undefined,
-        new_cards: cardsToCreate.length > 0 ? cardsToCreate : undefined,
-        updated_decks: decksToUpdate.length > 0 ? decksToUpdate : undefined,
-        updated_cards: cardsToUpdate.length > 0 ? cardsToUpdate : undefined,
+        client_timestamp: lastSyncTimestamp || new Date(0).toISOString(), // Enviar fecha muy antigua si no hay sync previo
+        new_decks: newDecksToPush,
+        new_cards: newCardsToPush,
+        updated_decks: updatedDecksToPush,
+        updated_cards: updatedCardsToPush,
       };
 
-      console.log("SyncContext: Preparando PUSH con payload:", JSON.stringify(pushPayload, null, 2));
+      try {
+        pushResponseData = await syncPush(pushPayload);
+        console.log("SyncContext: [Push] Respuesta del servidor:", pushResponseData);
+        // Aquí necesitaríamos una lógica para manejar conflictos y actualizar IDs temporales
+        // con los IDs reales devueltos por el servidor.
+        // Por ahora, asumimos que el push es exitoso y el pull traerá los IDs correctos.
 
-      if (!pushPayload.new_decks && !pushPayload.new_cards && !pushPayload.updated_decks && !pushPayload.updated_cards) {
-        console.log("SyncContext: No hay cambios locales para enviar en PUSH. Sincronización (pull) completada.");
-        setLastSyncTimestamp(newLastSyncTimestamp);
-        localStorage.setItem('lastSyncTimestamp', newLastSyncTimestamp);
-        setIsSyncing(false);
-        return;
+      } catch (error: any) {
+        console.error("SyncContext: [Push] Error al enviar cambios al servidor:", error);
+        setSyncError(`Error en Push: ${error.message || 'Error desconocido'}`);
+        pushSuccessful = false; // No continuar con pull si el push falló críticamente
       }
-
-      // 4. PUSH CHANGES TO SERVER
-      console.log("SyncContext: Realizando PUSH...");
-      const pushResponse: PushResponse = await syncPush(pushPayload);
-      console.log('SyncContext: PUSH completado. Respuesta:', pushResponse);
-
-      // 5. PROCESS PUSH RESPONSE (Update local state based on server confirmation)
-      let finalDecks = [...reconciledDecks];
-      let finalCards = [...reconciledCards];
-
-      if (pushResponse.conflicts && pushResponse.conflicts.length > 0) {
-        const conflictMessages = pushResponse.conflicts.map(c => c.message).join('; ');
-        setSyncError(`Conflictos detectados: ${conflictMessages}`);
-      }
-
-      const deckIdMap = new Map<string, number>(); // <tempId, serverId>
-
-      if (pushResponse.created_decks) {
-        finalDecks = finalDecks.map(localDeck => {
-          if (localDeck._isNew) {
-            const createdServerDeck = pushResponse.created_decks?.find(cd => cd.name === localDeck.name);
-            if (createdServerDeck) {
-              if (localDeck._tempId) {
-                deckIdMap.set(localDeck._tempId, createdServerDeck.id);
-              }
-              return { 
-                ...createdServerDeck, 
-                _isNew: false, 
-                _isDirty: false, 
-                _tempId: undefined 
-              };
-            }
-          }
-          return localDeck;
-        }).filter(d => !(d._isNew && !pushResponse.created_decks?.some(cd => cd.name === d.name))); 
-      }
-
-      if (pushResponse.created_cards) {
-        finalCards = finalCards.map(localCard => {
-          if (localCard._isNew) {
-            const createdServerCard = pushResponse.created_cards?.find(
-              (sc) => {
-                let cardDeckIdToCheck = localCard.deck_id;
-                // Si el deck_id de la tarjeta local es un _tempId de mazo, usa el ID mapeado del servidor
-                if (typeof localCard.deck_id === 'string' && deckIdMap.has(localCard.deck_id)) {
-                  cardDeckIdToCheck = deckIdMap.get(localCard.deck_id)!;
-                }
-                const deckIdMatches = sc.deck_id === cardDeckIdToCheck;
-                
-                const contentMatches = JSON.stringify(sc.front_content) === JSON.stringify(localCard.front_content) && 
-                                     JSON.stringify(sc.back_content) === JSON.stringify(localCard.back_content) &&
-                                     sc.raw_cloze_text === localCard.raw_cloze_text;
-                return deckIdMatches && contentMatches;
-              }
-            );
-            if (createdServerCard) {
-              return { 
-                ...createdServerCard, 
-                _isNew: false, 
-                _isDirty: false, 
-                _tempId: undefined 
-              };
-            }
-          }
-          return localCard;
-        }).filter(c => {
-            if (!c._isNew) return true; // Mantener si no es nueva
-            // Para tarjetas nuevas, verificar si realmente se crearon (lógica similar a la de búsqueda)
-            const wasCreated = pushResponse.created_cards?.some(sc => {
-                let cardDeckIdToCheck = c.deck_id;
-                if (typeof c.deck_id === 'string' && deckIdMap.has(c.deck_id)) {
-                    cardDeckIdToCheck = deckIdMap.get(c.deck_id)!;
-                }
-                const deckIdMatches = sc.deck_id === cardDeckIdToCheck;
-                const contentMatches = JSON.stringify(sc.front_content) === JSON.stringify(c.front_content) && 
-                                     JSON.stringify(sc.back_content) === JSON.stringify(c.back_content) &&
-                                     sc.raw_cloze_text === c.raw_cloze_text;
-                return deckIdMatches && contentMatches && sc.id !== 0;
-            });
-            return wasCreated; // Solo mantener las nuevas que fueron creadas
-        });
-      }
-
-      // Actualizar deck_id en tarjetas (nuevas o existentes) si su mazo era nuevo y ahora tiene ID de servidor
-      finalCards = finalCards.map(card => {
-        let newDeckId = card.deck_id;
-        if (typeof card.deck_id === 'string' && deckIdMap.has(card.deck_id)) {
-          newDeckId = deckIdMap.get(card.deck_id)!;
-        }
-        return { ...card, deck_id: newDeckId };
-      });
-
-      // Resetear flags _isDirty para elementos actualizados/eliminados que se procesaron sin conflicto
-      // (Asumimos que si no hay conflicto, el servidor aceptó el cambio)
-      finalDecks = finalDecks.map(d => {
-        if (d._isDirty) { // Si estaba sucio (actualizado o marcado para eliminar)
-            // Y si no es un mazo nuevo que falló en crearse (ya filtrado)
-            // O si es un mazo existente que fue modificado/eliminado y no hubo conflicto específico para él
-            return { ...d, _isDirty: false };
-        }
-        return d;
-      });
-
-      finalCards = finalCards.map(c => {
-        if (c._isDirty) {
-            return { ...c, _isDirty: false };
-        }
-        return c;
-      });
-      
-      // Filtrar elementos que están marcados como is_deleted y ya no están _isDirty (eliminación procesada)
-      const trulyFinalDecks = finalDecks.filter(d => !d.is_deleted || d._isDirty);
-      const trulyFinalCards = finalCards.filter(c => !c.is_deleted || c._isDirty);
-
-      setDecks(trulyFinalDecks);
-      setCards(trulyFinalCards);
-
-      setLastSyncTimestamp(newLastSyncTimestamp);
-      localStorage.setItem('lastSyncTimestamp', newLastSyncTimestamp);
-      console.log("SyncContext: Sincronización completada. Nuevo timestamp:", newLastSyncTimestamp);
-
-    } catch (err) {
-      console.error("SyncContext: Error durante la sincronización:", err);
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido durante la sincronización.';
-      setSyncError(`Error de sincronización: ${errorMessage}`);
-    } finally {
-      setIsSyncing(false);
+    } else {
+      console.log("SyncContext: [Push] No hay cambios locales para enviar.");
     }
-  }, [isSyncing, lastSyncTimestamp, decks, cards, setSyncError, setDecks, setCards, setIsSyncing, setLastSyncTimestamp]); // Actualizar dependencias
+
+    // --- PULL ---
+    // Solo proceder con PULL si el PUSH fue exitoso o no había nada que pushear
+    if (pushSuccessful) {
+      console.log("SyncContext: [Pull] Solicitando datos del servidor...");
+      try {
+        const pullData: PullResponse = await syncPull(lastSyncTimestamp || undefined);
+        console.log("SyncContext: [Pull] Datos recibidos del servidor:", pullData);
+
+        // Aquí es donde aplicaríamos los cambios del servidor al estado local.
+        // Esta es una lógica de merge compleja.
+        // Simplificación: Reemplazar datos locales con los del servidor,
+        // pero con cuidado de no perder cambios locales no sincronizados si el push falló parcialmente.
+        
+        // Función para manejar la respuesta del pull
+        const handlePullResponse = (serverData: PullResponse) => {
+          console.log("SyncContext: [Pull] Procesando respuesta del servidor...");
+          // Loguear los datos crudos puede ser muy verboso, pero útil para debug extremo.
+          // console.log("DEBUG SYNC: Datos crudos del servidor:", JSON.stringify(serverData, null, 2));
+
+          const serverDecks = serverData.decks;
+          const serverCards = serverData.cards;
+
+          // Log detallado y guardia para decks
+          console.log('DEBUG SYNC: Datos crudos de serverData.decks:', serverDecks);
+          console.log('DEBUG SYNC: typeof serverData.decks:', typeof serverDecks);
+          console.log('DEBUG SYNC: Array.isArray(serverData.decks):', Array.isArray(serverDecks));
+
+          let mergedDecks: LocalDeck[];
+          if (Array.isArray(serverDecks)) {
+            mergedDecks = serverDecks.map(d => ({ ...d, _isNew: false, _isDirty: false, is_deleted: d.is_deleted || false }));
+            console.log('DEBUG SYNC: serverDecks procesados exitosamente. Cantidad:', mergedDecks.length);
+          } else {
+            console.warn('DEBUG SYNC: serverDecks NO es un array o es undefined. Valor recibido:', serverDecks, '. Se usará un array vacío para mergedDecks.');
+            mergedDecks = []; // Usar array vacío como fallback seguro
+          }
+
+          // Log detallado y guardia para cards
+          console.log('DEBUG SYNC: Datos crudos de serverData.cards:', serverCards);
+          console.log('DEBUG SYNC: typeof serverData.cards:', typeof serverCards);
+          console.log('DEBUG SYNC: Array.isArray(serverData.cards):', Array.isArray(serverCards));
+
+          let mergedCards: LocalCard[];
+          if (Array.isArray(serverCards)) {
+            mergedCards = serverCards.map(c => ({ ...c, _isNew: false, _isDirty: false, is_deleted: c.is_deleted || false }));
+            console.log('DEBUG SYNC: serverCards procesados exitosamente. Cantidad:', mergedCards.length);
+          } else {
+            console.warn('DEBUG SYNC: serverCards NO es un array o es undefined. Valor recibido:', serverCards, '. Se usará un array vacío para mergedCards.');
+            mergedCards = []; // Usar array vacío como fallback seguro
+          }
+          
+          // Si el PUSH tuvo items nuevos, el PULL debería traerlos con sus IDs reales.
+          // Necesitamos mapear los _tempId a los IDs reales.
+          if (pushResponseData && Array.isArray(pushResponseData.created_decks)) {
+            pushResponseData.created_decks.forEach(createdServerDeck => {
+              // Intenta encontrar el deck local que corresponde al que se acaba de crear en el servidor.
+              // Esto es heurístico, podría basarse en el nombre si _tempId no está disponible o no es fiable post-serialización.
+              const localNewDeck = decks.find(d => d._isNew && d.name === createdServerDeck.name); 
+              if (localNewDeck) {
+                console.log(`DEBUG SYNC: Mapeando _tempId para mazo nuevo '${createdServerDeck.name}' de temp ${localNewDeck._tempId} a ID real ${createdServerDeck.id}`);
+                // Actualizar el deck en mergedDecks si ya existe, o añadirlo.
+                const existingInMergedIndex = mergedDecks.findIndex(md => md.id === createdServerDeck.id || (md.name === createdServerDeck.name && md._isNew)); // Considerar match por nombre si el ID es 0 o _tempId
+                if (existingInMergedIndex > -1) {
+                  mergedDecks[existingInMergedIndex] = { ...mergedDecks[existingInMergedIndex], ...createdServerDeck, _isNew: false, _isDirty: false };
+                } else {
+                  mergedDecks.push({ ...createdServerDeck, _isNew: false, _isDirty: false });
+                }
+              }
+            });
+          }
+
+          if (pushResponseData && Array.isArray(pushResponseData.created_cards)) {
+            pushResponseData.created_cards.forEach(createdServerCard => {
+              // Similar lógica para tarjetas, podría ser más complejo identificar la tarjeta local original
+              // Aquí podríamos necesitar una mejor estrategia de mapeo, quizás usando el _tempId si se envió y se devolvió.
+              const localNewCard = cards.find(c => c._isNew && c.deck_id === createdServerCard.deck_id && JSON.stringify(c.front_content) === JSON.stringify(createdServerCard.front_content) ); // Heurística
+              if (localNewCard) {
+                console.log(`DEBUG SYNC: Mapeando _tempId para tarjeta nueva (frontal: ${JSON.stringify(createdServerCard.front_content)}) de temp ${localNewCard._tempId} a ID real ${createdServerCard.id}`);
+                const existingInMergedIndex = mergedCards.findIndex(mc => mc.id === createdServerCard.id);
+                if (existingInMergedIndex > -1) {
+                  mergedCards[existingInMergedIndex] = { ...mergedCards[existingInMergedIndex], ...createdServerCard, _isNew: false, _isDirty: false };
+                } else {
+                  mergedCards.push({ ...createdServerCard, _isNew: false, _isDirty: false });
+                }
+              }
+            });
+          }
+
+          console.log("SyncContext: [Pull] Aplicando datos del servidor al estado local (estrategia de reemplazo).");
+          setDecks(mergedDecks);
+          setCards(mergedCards);
+          
+          const newTimestamp = serverData.server_timestamp;
+          setLastSyncTimestamp(newTimestamp);
+          localStorage.setItem('lastSyncTimestamp', newTimestamp);
+          console.log("SyncContext: [Pull] Sincronización completada. Nuevo timestamp:", newTimestamp);
+
+        };
+
+        handlePullResponse(pullData);
+
+      } catch (error: any) {
+        console.error("SyncContext: [Pull] Error al obtener datos del servidor:", error);
+        setSyncError(`Error en Pull: ${error.message || 'Error desconocido'}`);
+      }
+    }
+
+    setIsSyncing(false);
+    setIsInitialized(true); // Asegurar que está inicializado después del primer intento de sync
+    console.log("SyncContext: Ciclo de sincronización finalizado.");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSyncing, lastSyncTimestamp, decks, cards]); // decks y cards aquí para re-evaluar si hay cambios para el PUSH
+
+  // Efecto para iniciar la sincronización al montar y luego periódicamente
+  useEffect(() => {
+    if (!isInitialized) return; // No hacer nada hasta que la carga inicial de caché/timestamp esté completa
+
+    console.log("SyncContext: useEffect para sincronización periódica o inicial.");
+    
+    initiateSync(); // Sincronizar al inicio después de la inicialización
+
+    const intervalId = setInterval(() => {
+      console.log("SyncContext: Disparando sincronización periódica...");
+      initiateSync();
+    }, 300000); // Sincronizar cada 5 minutos
+
+    return () => clearInterval(intervalId); // Limpiar intervalo al desmontar
+  }, [initiateSync, isInitialized]); // Depender de isInitialized
 
   const contextValue: SyncContextType = {
     decks,

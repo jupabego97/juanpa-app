@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b tsconfig.build.json && vite build",
+    "build:vercel": "vite build --mode production",
     "lint": "eslint .",
     "preview": "vite preview",
-    "vercel-build": "npm run build",
-    "start": "vite preview --port $PORT"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@tiptap/extension-bullet-list": "^2.12.0",

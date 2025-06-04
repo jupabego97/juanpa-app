@@ -1,4 +1,5 @@
 import { Routes, Route, Link, NavLink } from 'react-router-dom';
+import { useState } from 'react';
 import './App.css'; // Puedes mantener o modificar los estilos globales
 import 'react-tooltip/dist/react-tooltip.css'; // Importar CSS de react-tooltip
 import { Tooltip } from 'react-tooltip';      // Importar Tooltip
@@ -31,39 +32,48 @@ function SomeOtherPage() { // Componente de ejemplo, se puede mantener o elimina
 }
 
 const App: React.FC = () => {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <div className="App">
       <OfflineIndicator />
       <header className="app-nav">
-        <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px' }}>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <NavLink to="/" end>
+        <nav className="nav-container">
+          <button
+            className="hamburger"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Menu"
+          >
+            &#9776;
+          </button>
+          <div className={`nav-links ${menuOpen ? 'open' : ''}`}>
+            <NavLink to="/" end onClick={() => setMenuOpen(false)}>
               <span role="img" aria-label="Inicio" className="nav-icon">🏠</span> Inicio
             </NavLink>
-            <NavLink to="/decks/new" className={({ isActive }) => isActive ? "active nav-button-compact" : "nav-button-compact"}>
+            <NavLink to="/decks/new" className={({ isActive }) => isActive ? "active nav-button-compact" : "nav-button-compact"} onClick={() => setMenuOpen(false)}>
               <span role="img" aria-label="Crear Mazo" className="nav-icon">➕</span> Crear
             </NavLink>
-            <NavLink to="/quick-capture" className={({ isActive }) => isActive ? "active nav-button-compact" : "nav-button-compact"}>
+            <NavLink to="/quick-capture" className={({ isActive }) => isActive ? "active nav-button-compact" : "nav-button-compact"} onClick={() => setMenuOpen(false)}>
               <span role="img" aria-label="Captura OCR" className="nav-icon">📸</span> OCR
             </NavLink>
-            <NavLink to="/ai-generator" className={({ isActive }) => isActive ? "active nav-button-compact" : "nav-button-compact"}>
+            <NavLink to="/ai-generator" className={({ isActive }) => isActive ? "active nav-button-compact" : "nav-button-compact"} onClick={() => setMenuOpen(false)}>
               <span role="img" aria-label="IA Generador" className="nav-icon">🤖</span> IA
             </NavLink>
-            <NavLink to="/review">
+            <NavLink to="/review" onClick={() => setMenuOpen(false)}>
               <span role="img" aria-label="Repasar" className="nav-icon">🔄</span> Repasar
             </NavLink>
-            <NavLink to="/stats">
+            <NavLink to="/stats" onClick={() => setMenuOpen(false)}>
               <span role="img" aria-label="Estadísticas" className="nav-icon">📊</span> Stats
             </NavLink>
-            <NavLink to="/import" className={({ isActive }) => isActive ? "active nav-button-compact" : "nav-button-compact"}>
+            <NavLink to="/import" className={({ isActive }) => isActive ? "active nav-button-compact" : "nav-button-compact"} onClick={() => setMenuOpen(false)}>
               <span role="img" aria-label="Importar" className="nav-icon">📥</span> Import
             </NavLink>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <NavLink to="/settings" className={({ isActive }) => isActive ? "active nav-button-compact" : "nav-button-compact"}>
+          <div className="nav-actions">
+            <NavLink to="/settings" className={({ isActive }) => isActive ? "active nav-button-compact" : "nav-button-compact"} onClick={() => setMenuOpen(false)}>
               <span role="img" aria-label="Configuraciones" className="nav-icon">⚙️</span>
             </NavLink>
-            <NavLink to="/help" className={({ isActive }) => isActive ? "active nav-button-compact" : "nav-button-compact"}>
+            <NavLink to="/help" className={({ isActive }) => isActive ? "active nav-button-compact" : "nav-button-compact"} onClick={() => setMenuOpen(false)}>
               <span role="img" aria-label="Ayuda" className="nav-icon">📖</span>
             </NavLink>
             <SyncButton showStatus={false} />

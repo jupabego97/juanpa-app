@@ -1,42 +1,407 @@
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: #f7f9fb;
+  color: #0f172a;
+}
+
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  max-width: none;
+  padding: 0;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.skyharvest {
+  background: linear-gradient(180deg, #ffffff 0%, #f6f7fb 40%, #eff7ff 100%);
+  color: #0f172a;
+  min-height: 100vh;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+.skyharvest__hero {
+  padding: 48px 6vw 60px;
+  background: radial-gradient(circle at top, rgba(124, 58, 237, 0.08), transparent 45%),
+    linear-gradient(120deg, rgba(34, 197, 94, 0.08), transparent 45%);
+}
+
+.skyharvest__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 48px;
+}
+
+.skyharvest__logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.skyharvest__logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7c3aed, #38bdf8);
+  color: white;
+  font-size: 0.8rem;
+}
+
+.skyharvest__nav-links {
+  display: flex;
+  gap: 16px;
+}
+
+.ghost-button {
+  background: transparent;
+  border: 1px solid rgba(15, 23, 42, 0.15);
+  color: #0f172a;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ghost-button:hover {
+  border-color: #7c3aed;
+  color: #7c3aed;
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.15);
+}
+
+.skyharvest__hero-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 40px;
+  align-items: center;
+}
+
+.skyharvest__hero-copy h1 {
+  font-size: clamp(2.4rem, 2.8vw, 3.6rem);
+  margin: 16px 0;
+  max-width: 520px;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.75rem;
+  color: #4c1d95;
+  font-weight: 700;
+}
+
+.hero-subtitle {
+  font-size: 1.1rem;
+  max-width: 520px;
+  color: #475569;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.primary-button,
+.secondary-button {
+  border-radius: 999px;
+  padding: 12px 24px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.primary-button {
+  background: linear-gradient(135deg, #7c3aed, #22c55e);
+  color: white;
+  box-shadow: 0 10px 30px rgba(34, 197, 94, 0.2);
+}
+
+.secondary-button {
+  background: white;
+  border: 1px solid rgba(15, 23, 42, 0.2);
+  color: #0f172a;
+}
+
+.primary-button:hover,
+.secondary-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(56, 189, 248, 0.18);
+}
+
+.hero-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.hero-metrics span {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.hero-metrics p {
+  color: #64748b;
+  margin-top: 4px;
+  font-size: 0.9rem;
+}
+
+.skyharvest__hero-visual {
+  display: grid;
+  gap: 20px;
+}
+
+.visual-panel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.visual-panel img {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  filter: saturate(1.2) brightness(1.08);
+}
+
+.visual-overlay {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 16px 20px;
+  background: rgba(15, 23, 42, 0.65);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.section-heading {
+  max-width: 680px;
+  margin-bottom: 32px;
+}
+
+.section-heading h2 {
+  font-size: clamp(1.8rem, 2.4vw, 2.6rem);
+  margin-bottom: 8px;
+}
+
+.section-heading p {
+  color: #475569;
+}
+
+.skyharvest__stack,
+.skyharvest__dashboard,
+.skyharvest__crops {
+  padding: 64px 6vw;
+}
+
+.stack-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.stack-module {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+  display: grid;
+  gap: 8px;
+}
+
+.stack-status {
+  align-self: start;
+  color: #22c55e;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.dashboard-metrics {
+  display: grid;
+  gap: 16px;
+}
+
+.metric-card {
+  background: white;
+  border-radius: 18px;
+  padding: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+.metric-card h3 {
+  font-size: 2rem;
+  margin: 10px 0;
+}
+
+.metric-detail {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.dashboard-visuals {
+  display: grid;
+  gap: 16px;
+}
+
+.line-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 18px;
+  padding: 18px 20px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+}
+
+.line-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.line-status {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #38bdf8;
+}
+
+.line-graph {
+  stroke-dasharray: 320;
+  stroke-dashoffset: 320;
+  animation: draw-line 3s ease infinite;
+}
+
+@keyframes draw-line {
+  0% {
+    stroke-dashoffset: 320;
   }
-  to {
-    transform: rotate(360deg);
+  60% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 0;
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+.crop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.crop-card {
+  position: relative;
+  background: white;
+  border-radius: 20px;
+  padding: 22px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.crop-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 38px rgba(124, 58, 237, 0.2);
+}
+
+.crop-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.crop-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.chip {
+  background: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.holo-popup {
+  position: absolute;
+  inset: 20px;
+  background: rgba(15, 23, 42, 0.88);
+  border-radius: 16px;
+  padding: 18px;
+  color: white;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+  transition: all 0.2s ease;
+  border: 1px solid rgba(124, 58, 237, 0.6);
+  box-shadow: 0 0 30px rgba(56, 189, 248, 0.4);
+}
+
+.crop-card.is-active .holo-popup {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.skyharvest__cta {
+  padding: 64px 6vw 80px;
+  background: linear-gradient(120deg, rgba(124, 58, 237, 0.1), rgba(56, 189, 248, 0.1));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.skyharvest__cta h2 {
+  margin-bottom: 8px;
+}
+
+@media (max-width: 720px) {
+  .skyharvest__nav {
+    flex-direction: column;
+    gap: 16px;
   }
-}
 
-.card {
-  padding: 2em;
-}
+  .skyharvest__nav-links {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 
-.read-the-docs {
-  color: #888;
+  .skyharvest__cta {
+    flex-direction: column;
+    text-align: center;
+  }
 }

@@ -12,8 +12,10 @@ from google import genai
 def test_basic_gemini():
     """Prueba básica usando el ejemplo del usuario."""
     try:
-        # Usar la API key del ejemplo (puedes cambiarla por la tuya)
-        client = genai.Client(api_key="AIzaSyDS8DZT0UIKjn-A25m22nBS0gWicFDeyNs")
+        api_key = os.getenv("GOOGLE_GEMINI_API_KEY")
+        if not api_key:
+            raise RuntimeError("GOOGLE_GEMINI_API_KEY no esta configurada")
+        client = genai.Client(api_key=api_key)
         
         response = client.models.generate_content(
             model="gemini-2.5-pro-exp-03-25",
@@ -37,9 +39,6 @@ async def test_card_generation():
     """Prueba de generación de tarjetas usando nuestro servicio."""
     try:
         from app.gemini_service import GeminiCardGenerator, CardGenerationRequest
-        
-        # Configurar API key
-        os.environ["GOOGLE_GEMINI_API_KEY"] = "AIzaSyDS8DZT0UIKjn-A25m22nBS0gWicFDeyNs"
         
         # Crear generador
         generator = GeminiCardGenerator()
@@ -95,7 +94,10 @@ async def test_card_generation():
 def test_prompt_generation():
     """Prueba específica para generación de tarjetas en español."""
     try:
-        client = genai.Client(api_key="AIzaSyDS8DZT0UIKjn-A25m22nBS0gWicFDeyNs")
+        api_key = os.getenv("GOOGLE_GEMINI_API_KEY")
+        if not api_key:
+            raise RuntimeError("GOOGLE_GEMINI_API_KEY no esta configurada")
+        client = genai.Client(api_key=api_key)
         
         prompt = """Eres un experto educador especializado en crear tarjetas de estudio efectivas para repetición espaciada.
 

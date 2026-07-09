@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SkyHarvest · Futuristic Vertical Farming</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: 'Space Grotesk', system-ui, sans-serif;
+        background: #f7f9fb;
+        color: #0f172a;
+        line-height: 1.6;
+      }
+
+      .skyharvest {
+        background: linear-gradient(180deg, #ffffff 0%, #f6f7fb 40%, #eff7ff 100%);
+        min-height: 100vh;
+      }
+
+      .skyharvest__hero {
+        padding: 48px 6vw 60px;
+        background: radial-gradient(circle at top, rgba(124, 58, 237, 0.08), transparent 45%),
+          linear-gradient(120deg, rgba(34, 197, 94, 0.08), transparent 45%);
+      }
+
+      .skyharvest__nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 48px;
+      }
+
+      .skyharvest__logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 700;
+        font-size: 1.2rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .skyharvest__logo-mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #7c3aed, #38bdf8);
+        color: white;
+        font-size: 0.8rem;
+      }
+
+      .skyharvest__nav-links {
+        display: flex;
+        gap: 16px;
+      }
+
+      .ghost-button {
+        background: transparent;
+        border: 1px solid rgba(15, 23, 42, 0.15);
+        color: #0f172a;
+        padding: 10px 18px;
+        border-radius: 999px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .ghost-button:hover {
+        border-color: #7c3aed;
+        color: #7c3aed;
+        box-shadow: 0 6px 16px rgba(124, 58, 237, 0.15);
+      }
+
+      .skyharvest__hero-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 40px;
+        align-items: center;
+      }
+
+      .skyharvest__hero-copy h1 {
+        font-size: clamp(2.4rem, 2.8vw, 3.6rem);
+        margin: 16px 0;
+        max-width: 520px;
+      }
+
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        font-size: 0.75rem;
+        color: #4c1d95;
+        font-weight: 700;
+      }
+
+      .hero-subtitle {
+        font-size: 1.1rem;
+        max-width: 520px;
+        color: #475569;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin: 24px 0;
+      }
+
+      .primary-button,
+      .secondary-button {
+        border-radius: 999px;
+        padding: 12px 24px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .primary-button {
+        background: linear-gradient(135deg, #7c3aed, #22c55e);
+        color: white;
+        box-shadow: 0 10px 30px rgba(34, 197, 94, 0.2);
+      }
+
+      .secondary-button {
+        background: white;
+        border: 1px solid rgba(15, 23, 42, 0.2);
+        color: #0f172a;
+      }
+
+      .primary-button:hover,
+      .secondary-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(56, 189, 248, 0.18);
+      }
+
+      .hero-metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 16px;
+        margin-top: 32px;
+      }
+
+      .hero-metrics span {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .hero-metrics p {
+        color: #64748b;
+        margin-top: 4px;
+        font-size: 0.9rem;
+      }
+
+      .skyharvest__hero-visual {
+        display: grid;
+        gap: 20px;
+      }
+
+      .visual-panel {
+        position: relative;
+        overflow: hidden;
+        border-radius: 20px;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+        border: 1px solid rgba(148, 163, 184, 0.3);
+      }
+
+      .visual-panel img {
+        width: 100%;
+        height: 240px;
+        object-fit: cover;
+        filter: saturate(1.2) brightness(1.08);
+      }
+
+      .visual-overlay {
+        position: absolute;
+        inset: auto 0 0 0;
+        padding: 16px 20px;
+        background: rgba(15, 23, 42, 0.65);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .section-heading {
+        max-width: 680px;
+        margin-bottom: 32px;
+      }
+
+      .section-heading h2 {
+        font-size: clamp(1.8rem, 2.4vw, 2.6rem);
+        margin-bottom: 8px;
+      }
+
+      .section-heading p {
+        color: #475569;
+      }
+
+      .skyharvest__stack,
+      .skyharvest__dashboard,
+      .skyharvest__crops {
+        padding: 64px 6vw;
+      }
+
+      .stack-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+      }
+
+      .stack-module {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+        display: grid;
+        gap: 8px;
+      }
+
+      .stack-status {
+        align-self: start;
+        color: #22c55e;
+        font-weight: 700;
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        align-items: start;
+      }
+
+      .dashboard-metrics {
+        display: grid;
+        gap: 16px;
+      }
+
+      .metric-card {
+        background: white;
+        border-radius: 18px;
+        padding: 24px;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+      }
+
+      .metric-card h3 {
+        font-size: 2rem;
+        margin: 10px 0;
+      }
+
+      .metric-detail {
+        color: #64748b;
+        font-size: 0.85rem;
+      }
+
+      .dashboard-visuals {
+        display: grid;
+        gap: 16px;
+      }
+
+      .line-card {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 18px;
+        padding: 18px 20px;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+      }
+
+      .line-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+        margin-bottom: 12px;
+      }
+
+      .line-status {
+        font-size: 0.7rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #38bdf8;
+      }
+
+      .line-graph {
+        stroke-dasharray: 320;
+        stroke-dashoffset: 320;
+        animation: draw-line 3s ease infinite;
+      }
+
+      @keyframes draw-line {
+        0% {
+          stroke-dashoffset: 320;
+        }
+        60% {
+          stroke-dashoffset: 0;
+        }
+        100% {
+          stroke-dashoffset: 0;
+        }
+      }
+
+      .crop-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+      }
+
+      .crop-card {
+        position: relative;
+        background: white;
+        border-radius: 20px;
+        padding: 22px;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .crop-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 18px 38px rgba(124, 58, 237, 0.2);
+      }
+
+      .crop-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .crop-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 0.85rem;
+        color: #64748b;
+      }
+
+      .chip {
+        background: rgba(34, 197, 94, 0.15);
+        color: #16a34a;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.65rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .holo-popup {
+        position: absolute;
+        inset: 20px;
+        background: rgba(15, 23, 42, 0.88);
+        border-radius: 16px;
+        padding: 18px;
+        color: white;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(10px);
+        transition: all 0.2s ease;
+        border: 1px solid rgba(124, 58, 237, 0.6);
+        box-shadow: 0 0 30px rgba(56, 189, 248, 0.4);
+      }
+
+      .crop-card:hover .holo-popup {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .skyharvest__cta {
+        padding: 64px 6vw 80px;
+        background: linear-gradient(120deg, rgba(124, 58, 237, 0.1), rgba(56, 189, 248, 0.1));
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+
+      .skyharvest__cta h2 {
+        margin-bottom: 8px;
+      }
+
+      @media (max-width: 720px) {
+        .skyharvest__nav {
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .skyharvest__nav-links {
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+
+        .skyharvest__cta {
+          flex-direction: column;
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="skyharvest">
+      <header class="skyharvest__hero">
+        <nav class="skyharvest__nav">
+          <div class="skyharvest__logo">
+            <span class="skyharvest__logo-mark">◆</span>
+            SkyHarvest
+          </div>
+          <div class="skyharvest__nav-links">
+            <button class="ghost-button">Platform</button>
+            <button class="ghost-button">Eco-Dashboard</button>
+            <button class="ghost-button">Contact</button>
+          </div>
+        </nav>
+        <div class="skyharvest__hero-grid">
+          <div class="skyharvest__hero-copy">
+            <p class="eyebrow">Urban Agriculture, Reimagined</p>
+            <h1>Vertical farming engineered like a cleanroom lab.</h1>
+            <p class="hero-subtitle">
+              SkyHarvest delivers pesticide-free produce through precision hydroponics, stacked modules,
+              and AI-driven growth recipes. Farming becomes an urban science — luminous, sterile, and
+              efficient.
+            </p>
+            <div class="hero-actions">
+              <button class="primary-button">Tour the Facility</button>
+              <button class="secondary-button">Download Spec Sheet</button>
+            </div>
+            <div class="hero-metrics">
+              <div>
+                <span>98%</span>
+                <p>Water reclaimed per cycle</p>
+              </div>
+              <div>
+                <span>24/7</span>
+                <p>Climate orchestration</p>
+              </div>
+              <div>
+                <span>0</span>
+                <p>Soil contaminants detected</p>
+              </div>
+            </div>
+          </div>
+          <div class="skyharvest__hero-visual">
+            <div class="visual-panel">
+              <img
+                src="https://images.unsplash.com/photo-1545239351-ef35f43d514b?auto=format&fit=crop&w=900&q=80"
+                alt="Sterile vertical farming tower with LED lighting"
+              />
+              <div class="visual-overlay">
+                <p>Layered hydroponic towers</p>
+                <span>Photon Density: 98 μmol/m²</span>
+              </div>
+            </div>
+            <div class="visual-panel">
+              <img
+                src="https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=900&q=80"
+                alt="Crisp lettuce under artificial LED lighting"
+              />
+              <div class="visual-overlay">
+                <p>Clean-growth produce</p>
+                <span>Zero pesticide residue</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="skyharvest__stack">
+        <div class="section-heading">
+          <h2>Modular vertical stacks for city infrastructure.</h2>
+          <p>
+            Each SkyHarvest cell is a self-contained ecosystem — a grid-based architecture that scales
+            across rooftops, warehouses, and subterranean hubs.
+          </p>
+        </div>
+        <div class="stack-grid">
+          <div class="stack-module">
+            <h3>Tier 1</h3>
+            <p>Independent nutrient loop, LED spectrum tailoring, and sterile airflow.</p>
+            <span class="stack-status">Active</span>
+          </div>
+          <div class="stack-module">
+            <h3>Tier 2</h3>
+            <p>Precision dosing for leafy greens and aromatic herbs.</p>
+            <span class="stack-status">Active</span>
+          </div>
+          <div class="stack-module">
+            <h3>Tier 3</h3>
+            <p>Adaptive airflow and humidity control optimized per cultivar.</p>
+            <span class="stack-status">Active</span>
+          </div>
+          <div class="stack-module">
+            <h3>Tier 4</h3>
+            <p>Closed-loop irrigation with UV sterilization.</p>
+            <span class="stack-status">Active</span>
+          </div>
+          <div class="stack-module">
+            <h3>Tier 5</h3>
+            <p>Automated harvest lanes and AI yield prediction.</p>
+            <span class="stack-status">Active</span>
+          </div>
+          <div class="stack-module">
+            <h3>Tier 6</h3>
+            <p>Cold-chain ready storage and packaging layer.</p>
+            <span class="stack-status">Active</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="skyharvest__dashboard" id="dashboard">
+        <div class="section-heading">
+          <h2>Eco-Dashboard · Live Metrics</h2>
+          <p>Real-time sustainability impact from every harvest cycle.</p>
+        </div>
+        <div class="dashboard-grid">
+          <div class="dashboard-metrics">
+            <div class="metric-card">
+              <p>Water Saved</p>
+              <h3><span class="counter" data-target="12840">0</span> L</h3>
+              <span class="metric-detail">Compared to field irrigation</span>
+            </div>
+            <div class="metric-card">
+              <p>Carbon Offset</p>
+              <h3><span class="counter" data-target="3420">0</span> kg</h3>
+              <span class="metric-detail">Renewable energy matched</span>
+            </div>
+            <div class="metric-card">
+              <p>Daily Harvest Yield</p>
+              <h3><span class="counter" data-target="980">0</span> kg</h3>
+              <span class="metric-detail">Average across 42 modules</span>
+            </div>
+          </div>
+          <div class="dashboard-visuals">
+            <div class="line-card">
+              <div class="line-header">
+                <span>Nutrient Flow</span>
+                <span class="line-status">Live</span>
+              </div>
+              <svg viewBox="0 0 200 80" aria-hidden="true">
+                <polyline
+                  class="line-graph"
+                  points="10,61 46,43 82,54 118,30 154,41 190,23"
+                  fill="none"
+                  stroke="url(#skyGradient)"
+                  stroke-width="3"
+                ></polyline>
+                <defs>
+                  <linearGradient id="skyGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#7c3aed" />
+                    <stop offset="50%" stop-color="#38bdf8" />
+                    <stop offset="100%" stop-color="#22c55e" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <div class="line-card">
+              <div class="line-header">
+                <span>Photon Output</span>
+                <span class="line-status">Live</span>
+              </div>
+              <svg viewBox="0 0 200 80" aria-hidden="true">
+                <polyline
+                  class="line-graph"
+                  points="10,62 46,48 82,56 118,36 154,39 190,27"
+                  fill="none"
+                  stroke="url(#skyGradient)"
+                  stroke-width="3"
+                ></polyline>
+              </svg>
+            </div>
+            <div class="line-card">
+              <div class="line-header">
+                <span>Growth Velocity</span>
+                <span class="line-status">Live</span>
+              </div>
+              <svg viewBox="0 0 200 80" aria-hidden="true">
+                <polyline
+                  class="line-graph"
+                  points="10,59 46,45 82,50 118,34 154,37 190,20"
+                  fill="none"
+                  stroke="url(#skyGradient)"
+                  stroke-width="3"
+                ></polyline>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="skyharvest__crops">
+        <div class="section-heading">
+          <h2>Crop intelligence layer</h2>
+          <p>Hover to reveal holographic nutrition and growth data streams.</p>
+        </div>
+        <div class="crop-grid">
+          <div class="crop-card">
+            <div class="crop-header">
+              <h3>Basil</h3>
+              <span class="chip">Bio-Optimized</span>
+            </div>
+            <p>High-menthol microgreens tuned for rapid cycles.</p>
+            <div class="crop-meta">
+              <span>Vitamin K · 62% DV</span>
+              <span>18-day growth</span>
+            </div>
+            <div class="holo-popup">
+              <h4>Nutrition Scan</h4>
+              <p>Vitamin K · 62% DV</p>
+              <p>18-day growth</p>
+              <p>Yield: 1.8 kg / m²</p>
+            </div>
+          </div>
+          <div class="crop-card">
+            <div class="crop-header">
+              <h3>Butterhead Lettuce</h3>
+              <span class="chip">Bio-Optimized</span>
+            </div>
+            <p>Soft-leaf cultivar optimized for LED density.</p>
+            <div class="crop-meta">
+              <span>Folate · 42% DV</span>
+              <span>24-day growth</span>
+            </div>
+            <div class="holo-popup">
+              <h4>Nutrition Scan</h4>
+              <p>Folate · 42% DV</p>
+              <p>24-day growth</p>
+              <p>Yield: 3.1 kg / m²</p>
+            </div>
+          </div>
+          <div class="crop-card">
+            <div class="crop-header">
+              <h3>Micro Kale</h3>
+              <span class="chip">Bio-Optimized</span>
+            </div>
+            <p>Compact nutrient stacks for urban kitchens.</p>
+            <div class="crop-meta">
+              <span>Vitamin C · 71% DV</span>
+              <span>16-day growth</span>
+            </div>
+            <div class="holo-popup">
+              <h4>Nutrition Scan</h4>
+              <p>Vitamin C · 71% DV</p>
+              <p>16-day growth</p>
+              <p>Yield: 1.2 kg / m²</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="skyharvest__cta">
+        <div>
+          <h2>Deploy a SkyHarvest lab in your city.</h2>
+          <p>We partner with urban developers and grocers to install modular, carbon-negative farms.</p>
+        </div>
+        <button class="primary-button">Schedule a Demo</button>
+      </section>
+    </div>
+
+    <script>
+      const counters = document.querySelectorAll('.counter');
+      const updateCounters = () => {
+        counters.forEach((counter) => {
+          const target = Number(counter.dataset.target || 0);
+          const current = Number(counter.textContent || 0);
+          const increment = Math.ceil(target / 120);
+          if (current < target) {
+            counter.textContent = Math.min(current + increment, target).toLocaleString();
+          }
+        });
+      };
+
+      setInterval(updateCounters, 60);
+    </script>
+  </body>
+</html>
